@@ -1,0 +1,186 @@
+/* src/pages/FormStyles.css */
+
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background-color: #b5b5b6;
+  font-family: Tahoma, Lucida Sans;
+}
+
+/* Container utama agar form bisa ditengah */
+.form-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: transparent;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+/* Box form */
+.form-box {
+  background-color: #181f33;
+  padding: 2rem;
+  border-radius: 10px;
+  border: 1px solid #434343;
+  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+  width: 100%;
+  max-width: 400px;
+  box-sizing: border-box;
+}
+
+.form-title {
+  text-align: left;
+  font-size: 1.5rem;
+  margin-top: 0.1rem;
+  margin-bottom: 1rem;
+}
+
+.green {
+  color: rgb(53, 233, 53);
+}
+
+.form-group {
+  margin-bottom: 0.6rem;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.8rem;
+  margin-bottom: 2.5px;
+  color: #c2c2c9;
+}
+
+.input-wrapper {
+  display: flex;
+  align-items: center;
+  background-color: #060a12;
+  padding: 0.6rem;
+  border: 1px solid #6b6b6b;
+  border-radius: 8px;
+  position: relative;
+}
+
+.input-wrapper input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #d8d8d8;
+  padding-left: 0.5rem;
+  font-size: 0.9rem;
+  outline: none;
+}
+
+.input-icon {
+  color: #7b7b7b;
+  font-size: 0.9rem;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 10px;
+  color: #ccc;
+  cursor: pointer;
+}
+
+.form-button {
+  width: 100%;
+  padding: 0.65rem;
+  margin-top: 0.7rem;
+  border: none;
+  border-radius: 23px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.form-button {
+  background-color: rgb(72, 212, 33);
+  color: rgb(255, 255, 255);
+}
+
+.form-button:hover {
+  background-color: #17ae1a;
+}
+
+.form-footer {
+  text-align: center;
+  font-size: 0.85rem;
+  margin-top: 0.9rem;
+}
+
+.link-blue {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.form-footer.right {
+  text-align: right;
+  font-size: 0.8rem;
+  margin-top: 0.1rem;
+  margin-bottom: 5px;
+}
+
+.message-blink {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 1rem;
+  font-size: 0.8rem;;
+  color: #f6ff00;
+  animation: blinkText 1s infinite;
+}
+
+.blink-icon {
+  color: #ffffff;
+  font-size: 1rem;
+  animation: blinkText 1s infinite;
+}
+
+@keyframes blinkText {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.error-message {
+  color: red;
+  font-size: 14px;
+  margin-top: 10px;
+  text-align: center;
+}
+
+.google-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  background-color: white;
+  color: #444;
+  font-weight: 500;
+  font-size: 13px;
+  border-radius: 10px;
+  padding: 7px 5px;
+  margin-top: 0.7rem;
+  margin: 15px auto 0;
+  cursor: pointer;
+  transition: background 0.3s;
+  width: 190px; /* Lebih kecil dan pas */
+}
+
+.google-button:hover {
+  background-color: #d6d6d6;
+}
+
+.google-icon {
+  font-size: 18px;
+}
+
+.form-separator {
+  text-align: center;
+  margin: 10px 0;
+  color: #aaa;
+  font-size: 12px;
+}
