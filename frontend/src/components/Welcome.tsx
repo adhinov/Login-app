@@ -11,6 +11,7 @@ const Welcome: React.FC = () => {
 
   const handleLogout = () => {
     navigate("/");
+    localStorage.removeItem('firebaseToken');
   };
 
   return (
