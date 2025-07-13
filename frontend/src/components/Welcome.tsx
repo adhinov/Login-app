@@ -2,6 +2,19 @@
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import "./Welcome.css";
+import { useLocation } from "react-router-dom";
+
+const Welcome = () => {
+  const location = useLocation();
+  const { email, username } = location.state || {};
+
+  return (
+    <div>
+      <h1>Selamat Datang, {username || 'User'}!</h1>
+      <p>Email: {email}</p>
+    </div>
+  );
+};
 
 const Welcome: React.FC = () => {
   const location = useLocation();
