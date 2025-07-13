@@ -7,19 +7,6 @@ import './FormStyles.css';
 import { signInWithPopup } from "firebase/auth";
 import { auth, provider } from "../firebase"; // sesuaikan path-nya
 
-const handleGoogleLogin = async () => {
-  try {
-    const result = await signInWithPopup(auth, provider);
-    const user = result.user;
-    console.log("User info:", user);
-    alert("Login berhasil: " + user.email);
-    // ⬇️ redirect atau simpan token di sini
-  } catch (error) {
-    console.error("Google login error:", error);
-    alert("Login gagal.");
-  }
-};
-
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -27,6 +14,26 @@ const Login = () => {
   const [message, setMessage] = useState('');
   const navigate = useNavigate();
 
+  // 🔒 Google login
+  const handleGoogleLogin = async () => {
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      const token = await user.getIdToken(); // ✅ Ambil Firebase ID Token
+      console.log("Firebase token:", token);
+
+      localStorage.setItem('firebaseToken', token); // ⬅️ Simpan token
+
+      alert("Login berhasil: " + user.email);
+      navigate("/welcome", { state: { email: user.email } });
+
+    } catch (error) {
+      console.error("Google login error:", error);
+      alert("Login gagal.");
+    }
+  };
+
+  // 🔐 Login manual
   const handleLogin = async () => {
     setMessage('');
     try {
@@ -35,9 +42,14 @@ const Login = () => {
         password,
       });
       if (res.data && res.data.user) {
-        navigate('/welcome', { state: { email: res.data.user.email, username: res.data.user.username } });
+        navigate('/welcome', {
+          state: {
+            email: res.data.user.email,
+            username: res.data.user.username,
+          },
+        });
       }
-        } catch (err: unknown) {
+    } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         setMessage(err.response?.data?.message || 'Login gagal.');
       } else {
@@ -94,8 +106,9 @@ const Login = () => {
         </button>
 
         {message && <p className="error-message">{message}</p>}
-        
+
         <div className="form-separator">atau</div>
+
         <button className="google-button" onClick={handleGoogleLogin}>
           <img
             src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
