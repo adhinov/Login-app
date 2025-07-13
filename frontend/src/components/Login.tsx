@@ -5,7 +5,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './FormStyles.css';
 import { signInWithPopup } from "firebase/auth";
-import { auth, provider } from "../firebase"; // sesuaikan path-nya
+import { auth, provider } from "../firebase";
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -14,26 +14,6 @@ const Login = () => {
   const [message, setMessage] = useState('');
   const navigate = useNavigate();
 
-  // 🔒 Google login
-  const handleGoogleLogin = async () => {
-    try {
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      const token = await user.getIdToken(); // ✅ Ambil Firebase ID Token
-      console.log("Firebase token:", token);
-
-      localStorage.setItem('firebaseToken', token); // ⬅️ Simpan token
-
-      alert("Login berhasil: " + user.email);
-      navigate("/welcome", { state: { email: user.email } });
-
-    } catch (error) {
-      console.error("Google login error:", error);
-      alert("Login gagal.");
-    }
-  };
-
-  // 🔐 Login manual
   const handleLogin = async () => {
     setMessage('');
     try {
@@ -41,12 +21,13 @@ const Login = () => {
         email,
         password,
       });
+
       if (res.data && res.data.user) {
         navigate('/welcome', {
           state: {
             email: res.data.user.email,
-            username: res.data.user.username,
-          },
+            username: res.data.user.username || "User",
+          }
         });
       }
     } catch (err: unknown) {
@@ -55,6 +36,27 @@ const Login = () => {
       } else {
         setMessage('Terjadi kesalahan saat login.');
       }
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      const token = await user.getIdToken();
+      console.log("Firebase token:", token);
+
+      localStorage.setItem('firebaseToken', token);
+
+      navigate("/welcome", {
+        state: {
+          email: user.email,
+          username: user.displayName || "User", // ✅ Kirim nama pengguna Google
+        }
+      });
+    } catch (error) {
+      console.error("Google login error:", error);
+      alert("Login gagal.");
     }
   };
 
@@ -106,7 +108,7 @@ const Login = () => {
         </button>
 
         {message && <p className="error-message">{message}</p>}
-
+        
         <div className="form-separator">atau</div>
 
         <button className="google-button" onClick={handleGoogleLogin}>
