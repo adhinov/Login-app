@@ -29,6 +29,11 @@ db.connect((err) => {
   }
 });
 
+app.get('/', (req, res) => {
+  res.send('Backend is running ✅');
+});
+
+
 // Jalankan server
 app.listen(PORT, () => {
   console.log(`Server berjalan di http://localhost:${PORT}`);
