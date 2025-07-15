@@ -48,7 +48,7 @@ app.get("/", (req, res) => {
   res.send("✅ Backend is running");
 });
 
-// ✅ Jalankan server
-app.listen(PORT, () => {
+// Jalankan server (harus pakai 0.0.0.0 agar bisa diakses publik)
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Server berjalan di port ${PORT}`);
 });
