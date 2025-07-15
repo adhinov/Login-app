@@ -1,11 +1,13 @@
-// src/pages/login.tsx
+// src/components/login.tsx
 import { useState } from 'react';
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './FormStyles.css';
-import { signInWithPopup } from "firebase/auth";
-import { auth, provider } from "../firebase";
+import { signInWithPopup } from 'firebase/auth';
+import { auth, provider } from '../firebase';
+
+const apiUrl = import.meta.env.VITE_API_URL; // ✅ Gunakan dari .env frontend
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -17,7 +19,7 @@ const Login = () => {
   const handleLogin = async () => {
     setMessage('');
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/login', {
+      const res = await axios.post(`${apiUrl}/api/auth/login`, {
         email,
         password,
       });
@@ -26,8 +28,8 @@ const Login = () => {
         navigate('/welcome', {
           state: {
             email: res.data.user.email,
-            username: res.data.user.username || "User",
-          }
+            username: res.data.user.username || 'User',
+          },
         });
       }
     } catch (err: unknown) {
@@ -44,19 +46,22 @@ const Login = () => {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
       const token = await user.getIdToken();
-      console.log("Firebase token:", token);
 
+      console.log('Firebase token:', token);
       localStorage.setItem('firebaseToken', token);
 
-      navigate("/welcome", {
+      // ⬇️ Kirim token ke backend jika endpoint sudah tersedia
+      // await axios.post(`${apiUrl}/api/auth/google-login`, { token });
+
+      navigate('/welcome', {
         state: {
           email: user.email,
-          username: user.displayName || "User", // ✅ Kirim nama pengguna Google
-        }
+          username: user.displayName || 'User',
+        },
       });
     } catch (error) {
-      console.error("Google login error:", error);
-      alert("Login gagal.");
+      console.error('Google login error:', error);
+      alert('Login gagal.');
     }
   };
 
@@ -108,7 +113,7 @@ const Login = () => {
         </button>
 
         {message && <p className="error-message">{message}</p>}
-        
+
         <div className="form-separator">atau</div>
 
         <button className="google-button" onClick={handleGoogleLogin}>
