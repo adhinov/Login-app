@@ -8,6 +8,7 @@ import { signInWithPopup } from 'firebase/auth';
 import { auth, provider } from '../firebase';
 
 const apiUrl = import.meta.env.VITE_API_URL; // ✅ Gunakan dari .env frontend
+console.log('API URL dari env:', import.meta.env.VITE_API_URL);
 
 const Login = () => {
   const [email, setEmail] = useState('');
