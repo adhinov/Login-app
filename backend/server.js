@@ -12,29 +12,44 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
-app.use(cors());
+// ✅ CORS Configuration
+const allowedOrigins = [
+  "https://login-app-lovat-one.vercel.app", // 🔑 ganti sesuai URL Vercel kamu
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
+}));
+
 app.use(express.json());
 
-// Routes
-app.use("/api/auth", authRoutes);        // Untuk /login dan /register
-app.use("/api", passwordRoutes);         // Untuk /forgot-password dan /reset-password/:token
+// ✅ Routes
+app.use("/api/auth", authRoutes);        // /login dan /register
+app.use("/api", passwordRoutes);         // /forgot-password dan /reset-password/:token
 
-// Tes koneksi database
+// ✅ Tes koneksi database
 db.connect((err) => {
   if (err) {
     console.error("Koneksi database gagal:", err);
   } else {
-    console.log("Berhasil terkoneksi ke database MySQL");
+    console.log("✅ Berhasil terkoneksi ke database MySQL");
   }
 });
 
+// ✅ Tes root endpoint
 app.get('/', (req, res) => {
-  res.send('Backend is running ✅');
+  res.send('✅ Backend is running');
 });
 
-
-// Jalankan server
+// ✅ Jalankan server
 app.listen(PORT, () => {
-  console.log(`Server berjalan di http://localhost:${PORT}`);
+  console.log(`🚀 Server berjalan di http://localhost:${PORT}`);
 });
