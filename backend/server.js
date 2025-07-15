@@ -1,5 +1,4 @@
 // backend/server.js
-
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
@@ -12,44 +11,48 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ✅ Konfigurasi CORS
+// ✅ CORS - IZINKAN DOMAIN VERCEL
 const allowedOrigins = [
-  "https://login-app-lovat-one.vercel.app", // 🔑 Ganti dengan URL Vercel kamu jika berbeda
+  "https://login-app-lovat-one.vercel.app",
 ];
 
-app.use(cors({
-  origin: function (origin, callback) {
-    // Izinkan request tanpa origin (misal: curl, postman)
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("❌ Not allowed by CORS"));
-    }
-  },
-  credentials: true,
-}));
-
-app.use(express.json());
-
-// ✅ Rute API
-app.use("/api/auth", authRoutes);        // login & register
-app.use("/api", passwordRoutes);         // forgot-password & reset-password
-
-// ✅ Tes koneksi database
-db.connect((err) => {
-  if (err) {
-    console.error("❌ Koneksi database gagal:", err);
-  } else {
-    console.log("✅ Berhasil terkoneksi ke database MySQL");
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
   }
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type,Authorization");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200); // ✅ Tangani preflight
+  }
+  next();
 });
 
-// ✅ Root endpoint
+// ✅ Middleware umum
+app.use(express.json());
+
+// ✅ Routes
+app.use("/api/auth", authRoutes);
+app.use("/api", passwordRoutes);
+
+// ✅ Root test
 app.get("/", (req, res) => {
   res.send("✅ Backend is running");
 });
 
-// ✅ Jalankan server
+// ✅ DB check
+db.connect((err) => {
+  if (err) {
+    console.error("❌ DB connection failed:", err);
+  } else {
+    console.log("✅ Connected to MySQL database");
+  }
+});
+
+// ✅ Start server
 app.listen(PORT, () => {
   console.log(`🚀 Server berjalan di http://localhost:${PORT}`);
 });
