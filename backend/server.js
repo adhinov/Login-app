@@ -1,4 +1,5 @@
 // backend/server.js
+
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
@@ -11,48 +12,43 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ✅ CORS - IZINKAN DOMAIN VERCEL
+// ✅ Konfigurasi CORS
 const allowedOrigins = [
-  "https://login-app-lovat-one.vercel.app",
+  "https://login-app-lovat-one.vercel.app", // ganti jika frontend URL berubah
 ];
 
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (allowedOrigins.includes(origin)) {
-    res.setHeader("Access-Control-Allow-Origin", origin);
-  }
-  res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type,Authorization");
-  res.setHeader("Access-Control-Allow-Credentials", "true");
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
+}));
 
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(200); // ✅ Tangani preflight
-  }
-  next();
-});
-
-// ✅ Middleware umum
 app.use(express.json());
 
-// ✅ Routes
-app.use("/api/auth", authRoutes);
-app.use("/api", passwordRoutes);
+// ✅ Routing
+app.use("/api/auth", authRoutes);         // /login dan /register
+app.use("/api", passwordRoutes);          // /forgot-password dan /reset-password/:token
 
-// ✅ Root test
+// ✅ Tes koneksi database
+db.connect((err) => {
+  if (err) {
+    console.error("❌ Koneksi database gagal:", err);
+  } else {
+    console.log("✅ Berhasil terkoneksi ke database MySQL");
+  }
+});
+
+// ✅ Tes root endpoint
 app.get("/", (req, res) => {
   res.send("✅ Backend is running");
 });
 
-// ✅ DB check
-db.connect((err) => {
-  if (err) {
-    console.error("❌ DB connection failed:", err);
-  } else {
-    console.log("✅ Connected to MySQL database");
-  }
-});
-
-// server.js
+// ✅ Jalankan server
 app.listen(PORT, () => {
-  console.log(`🚀 Server berjalan di PORT: ${PORT}`);
+  console.log(`🚀 Server berjalan di port ${PORT}`);
 });
