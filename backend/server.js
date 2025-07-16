@@ -40,6 +40,8 @@ app.get("/", (req, res) => {
   res.send("✅ Backend is running");
 });
 
+app.get("/healthz", (req, res) => res.send("OK"));
+
 // ✅ Jalankan server di Railway (host 0.0.0.0)
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Server berjalan di port ${PORT}`);
