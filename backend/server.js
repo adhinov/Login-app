@@ -1,4 +1,5 @@
 // backend/server.js
+
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
@@ -9,21 +10,21 @@ const passwordRoutes = require("./routes/passwordRoutes");
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = parseInt(process.env.PORT) || 5000;
 
-// ✅ Konfigurasi CORS agar hanya menerima request dari frontend (Vercel)
+// ✅ CORS Config – hanya izinkan frontend kamu (Vercel)
 app.use(cors({
-  origin: "https://login-app-lovat-one.vercel.app", // Ganti jika domain frontend kamu berubah
+  origin: "https://login-app-lovat-one.vercel.app", // ganti sesuai URL frontend kamu
   credentials: true,
 }));
 
 app.use(express.json());
 
-// ✅ Routing
+// ✅ Routes
 app.use("/api/auth", authRoutes);         // /login dan /register
 app.use("/api", passwordRoutes);          // /forgot-password dan /reset-password/:token
 
-// ✅ Cek koneksi ke MySQL
+// ✅ Tes koneksi database
 db.connect((err) => {
   if (err) {
     console.error("❌ Koneksi database gagal:", err);
@@ -32,12 +33,12 @@ db.connect((err) => {
   }
 });
 
-// ✅ Root endpoint test
+// ✅ Root Endpoint
 app.get("/", (req, res) => {
   res.send("✅ Backend is running");
 });
 
-// ✅ Jalankan server
-app.listen(PORT, () => {
+// ✅ Jalankan server di Railway (host 0.0.0.0)
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Server berjalan di port ${PORT}`);
 });
