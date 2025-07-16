@@ -7,6 +7,8 @@ const db = require("./db");
 const authRoutes = require("./routes/auth");
 const passwordRoutes = require("./routes/passwordRoutes");
 
+console.log("✅ Memulai server.js ...");
+
 dotenv.config();
 
 const app = express();
