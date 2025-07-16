@@ -10,7 +10,7 @@ const passwordRoutes = require("./routes/passwordRoutes");
 dotenv.config();
 
 const app = express();
-const PORT = parseInt(process.env.PORT) || 5000;
+const PORT = process.env.PORT || 5000;
 
 // ✅ CORS Config – hanya izinkan frontend kamu (Vercel)
 app.use(cors({
