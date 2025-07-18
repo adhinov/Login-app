@@ -5,6 +5,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './FormStyles.css';
 
+const apiUrl = import.meta.env.VITE_API_URL;
+
 const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
@@ -25,7 +27,7 @@ const Signup = () => {
   const handleSignup = async () => {
     setMessage('');
     try {
-      await axios.post('http://localhost:5000/api/auth/signup', formData);
+      await axios.post(`${apiUrl}/api/auth/signup`, formData);
       alert('Signup berhasil! Silakan login.');
       navigate('/login');
         } catch (err: unknown) {
