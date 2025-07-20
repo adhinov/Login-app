@@ -5,8 +5,6 @@ import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import './FormStyles.css';
 
-const apiUrl = import.meta.env.VITE_API_URL;
-
 const ResetPassword = () => {
   const { token } = useParams();
   const [password, setPassword] = useState('');
@@ -14,6 +12,8 @@ const ResetPassword = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [message, setMessage] = useState('');
+
+  const apiUrl = import.meta.env.VITE_API_URL; // ✅ definisikan VITE_API_URL
 
   const handleReset = async () => {
     if (password.length < 6) {
@@ -28,6 +28,8 @@ const ResetPassword = () => {
 
     try {
       await axios.post(`${apiUrl}/api/auth/reset-password/${token}`, {
+        password,
+      });
       alert('Password berhasil direset!');
       setMessage('');
     } catch (error) {
