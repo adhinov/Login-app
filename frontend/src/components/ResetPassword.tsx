@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { useParams, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './FormStyles.css';
 
@@ -11,6 +12,7 @@ const ResetPassword = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [message, setMessage] = useState('');
+  const navigate = useNavigate();
 
   const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -19,18 +21,17 @@ const ResetPassword = () => {
       setMessage('Password harus berisi 6 karakter');
       return;
     }
-
+  
     if (password !== confirmPassword) {
       setMessage('Passwords tidak cocok');
       return;
     }
-
+  
     try {
-      await axios.post(`${apiUrl}/api/reset-password/${token}`, {
-        password,
-      });
+      await axios.post(`${apiUrl}/api/reset-password/${token}`, { password });
       alert('Password berhasil direset!');
       setMessage('');
+      navigate('/login'); // ✅ redirect ke halaman login
     } catch (error) {
       console.error('Gagal reset password:', error);
       alert('Gagal mereset password. Silakan coba lagi.');
