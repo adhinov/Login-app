@@ -9,7 +9,7 @@ const ForgotPassword = () => {
 
   const handleSubmit = async () => {
     try {
-      await axios.post('http://localhost:5000/api/forgot-password', { email });
+      await axios.post(`${apiUrl}/api/auth/forgot-password`, { email });
       setSuccessMessage(true);
     } catch (error) {
       console.error('Gagal mengirim email reset:', error);
