@@ -1,4 +1,3 @@
-// src/components/ResetPassword.tsx
 import { useState } from 'react';
 import { FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { useParams, Link } from 'react-router-dom';
@@ -13,21 +12,21 @@ const ResetPassword = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [message, setMessage] = useState('');
 
-  const apiUrl = import.meta.env.VITE_API_URL; // ✅ definisikan VITE_API_URL
+  const apiUrl = import.meta.env.VITE_API_URL;
 
   const handleReset = async () => {
-  if (password.length < 6) {
-    setMessage('Password harus berisi 6 karakter');
-    return;
+    if (password.length < 6) {
+      setMessage('Password harus berisi 6 karakter');
+      return;
     }
-  
+
     if (password !== confirmPassword) {
       setMessage('Passwords tidak cocok');
       return;
     }
-  
+
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL}/api/reset-password/${token}`, {
+      await axios.post(`${apiUrl}/api/reset-password/${token}`, {
         password,
       });
       alert('Password berhasil direset!');
