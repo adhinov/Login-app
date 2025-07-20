@@ -27,8 +27,7 @@ const ResetPassword = () => {
     }
   
     try {
-      const apiUrl = import.meta.env.VITE_API_URL;
-      await axios.post(`${apiUrl}/api/reset-password/${token}`, {
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/reset-password/${token}`, {
         password,
       });
       alert('Password berhasil direset!');
