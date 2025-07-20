@@ -5,6 +5,8 @@ import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import './FormStyles.css';
 
+const apiUrl = import.meta.env.VITE_API_URL;
+
 const ResetPassword = () => {
   const { token } = useParams();
   const [password, setPassword] = useState('');
@@ -25,7 +27,7 @@ const ResetPassword = () => {
     }
 
     try {
-      await axios.post(`${apiUrl}/api/auth/reset-password/${token}`, { password });
+      await axios.post(`${apiUrl}/api/auth/reset-password/${token}`, {
       alert('Password berhasil direset!');
       setMessage('');
     } catch (error) {
