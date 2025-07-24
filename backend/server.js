@@ -38,3 +38,5 @@ setInterval(() => {
 const protectedRoutes = require('./routes/protectedRoutes');
 app.use('/api/protected', protectedRoutes);
 
+const authRoutes = require('./routes/authRoutes');
+app.use('/api', authRoutes);
