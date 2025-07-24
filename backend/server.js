@@ -34,3 +34,7 @@ app.listen(PORT, "0.0.0.0", () => {
 setInterval(() => {
   console.log("⏱ Server masih hidup...");
 }, 30000);
+
+const protectedRoutes = require('./routes/protectedRoutes');
+app.use('/api/protected', protectedRoutes);
+
