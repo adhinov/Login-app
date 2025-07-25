@@ -2,7 +2,7 @@
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
-const db = require("./db");
+const db = require("../db");
 
 // Route imports
 const authRoutes = require("./routes/auth"); // Untuk auth (Google / Register)
