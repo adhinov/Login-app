@@ -1,5 +1,5 @@
 // models/userModel.js
-const db = require('../db');
+const db = require('./db');
 
 const createUser = (user, callback) => {
   const { email, username, phone, password } = user;

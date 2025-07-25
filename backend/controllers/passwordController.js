@@ -2,7 +2,7 @@
 
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const db = require("../db");
+const db = require("../models/db");
 const nodemailer = require("nodemailer");
 
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
