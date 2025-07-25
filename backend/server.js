@@ -3,8 +3,12 @@ const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const db = require("./db");
-const authRoutes = require("./routes/auth");
+
+// Route imports
+const authRoutes = require("./routes/auth"); // Untuk auth (Google / Register)
+const loginRoutes = require("./routes/authRoutes"); // Untuk login manual (email & password)
 const passwordRoutes = require("./routes/passwordRoutes");
+const protectedRoutes = require("./routes/protectedRoutes");
 
 dotenv.config();
 
@@ -18,14 +22,16 @@ app.use(cors({
 
 app.use(express.json());
 
-// ✅ API routes
-app.use("/api/auth", authRoutes);
-app.use("/api", passwordRoutes);
+// ✅ API Routes
+app.use("/api/auth", authRoutes);            // Google login / register
+app.use("/api", loginRoutes);                // Login manual /api/login
+app.use("/api", passwordRoutes);             // Lupa password / reset
+app.use("/api/protected", protectedRoutes);  // Route dengan auth + role
 
 // ✅ Root route
 app.get("/", (req, res) => res.send("✅ Backend is running!"));
 
-// ✅ Listen
+// ✅ Start server
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Server berjalan di port ${PORT}`);
 });
@@ -34,9 +40,3 @@ app.listen(PORT, "0.0.0.0", () => {
 setInterval(() => {
   console.log("⏱ Server masih hidup...");
 }, 30000);
-
-const protectedRoutes = require('./routes/protectedRoutes');
-app.use('/api/protected', protectedRoutes);
-
-const authRoutes = require('./routes/authRoutes');
-app.use('/api', authRoutes);
