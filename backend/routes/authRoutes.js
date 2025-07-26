@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
-const db = require('../models/db'); // sesuaikan dengan koneksi MySQL-mu
-const bcrypt = require('bcrypt');   // jika password di-hash
+const db = require('../models/db');
+const bcrypt = require('bcrypt');
 
 // LOGIN
 router.post('/login', async (req, res) => {
@@ -20,11 +20,21 @@ router.post('/login', async (req, res) => {
 
       const user = results[0];
 
-      // Jika password hash:
-      const passwordMatch = await bcrypt.compare(password, user.password);
-      if (!passwordMatch) return res.status(401).json({ message: 'Incorrect password' });
+      // ⬇️ Tambahkan debug log
+      console.log("🧪 User from DB:", user);
+      console.log("🧪 Password from input:", password);
+      console.log("🧪 Hashed password from DB:", user.password);
 
-      // Buat JWT
+      // Cek password hash
+      const passwordMatch = await bcrypt.compare(password, user.password);
+
+      // ⬇️ Log hasil compare
+      console.log("🧪 Password match result:", passwordMatch);
+
+      if (!passwordMatch)
+        return res.status(401).json({ message: 'Incorrect password' });
+
+      // Generate JWT token
       const token = jwt.sign(
         {
           id: user.id,
