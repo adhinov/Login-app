@@ -4,6 +4,7 @@ import Signup from "./components/Signup";
 import Welcome from "./components/Welcome";
 import ForgotPassword from "./components/ForgotPassword";
 import ResetPassword from "./components/ResetPassword";
+import AdminDashboard from "./components/AdminDashboard";
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
           <Route path="/welcome" element={<Welcome />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
+          <Route path="/admin" element={<AdminDashboard />} /> {/* ✅ pindah ke sini */}
         </Routes>
       </Router>
     </div>
