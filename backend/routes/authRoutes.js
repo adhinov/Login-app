@@ -1,58 +1,11 @@
+// routes/authRoutes.js
+
 const express = require('express');
 const router = express.Router();
-const jwt = require('jsonwebtoken');
-const db = require('../models/db');
-const bcrypt = require('bcryptjs');
+const authController = require('../controllers/authController');
 
-// LOGIN
-router.post('/login', async (req, res) => {
-  const { email, password } = req.body;
-
-  if (!email || !password)
-    return res.status(400).json({ message: 'Email and password required' });
-
-  try {
-    // Cek user dari database
-    const query = 'SELECT * FROM users WHERE email = ? LIMIT 1';
-    db.query(query, [email], async (err, results) => {
-      if (err) return res.status(500).json({ message: 'DB error', error: err });
-      if (results.length === 0) return res.status(401).json({ message: 'User not found' });
-
-      const user = results[0];
-
-      // ⬇️ Tambahkan debug log
-      console.log("🧪 User from DB:", user);
-      console.log("🧪 Password from input:", password);
-      console.log("🧪 Hashed password from DB:", user.password);
-
-      // Cek password hash
-      const passwordMatch = await bcrypt.compare(password, user.password);
-
-      // ⬇️ Log hasil compare
-      console.log("🧪 Password match result:", passwordMatch);
-
-      if (!passwordMatch)
-        return res.status(401).json({ message: 'Incorrect password' });
-
-      // Generate JWT token
-      const token = jwt.sign(
-        {
-          id: user.id,
-          email: user.email,
-          role: user.role
-        },
-        process.env.JWT_SECRET,
-        { expiresIn: '1d' }
-      );
-
-      res.json({
-        message: 'Login success',
-        token
-      });
-    });
-  } catch (err) {
-    res.status(500).json({ message: 'Server error', error: err });
-  }
-});
+// ✅ Gunakan controller untuk signup dan login
+router.post('/signup', authController.signup);
+router.post('/login', authController.login);
 
 module.exports = router;
