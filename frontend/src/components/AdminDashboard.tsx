@@ -16,6 +16,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
+    console.log("🔐 Token:", token); // <-- tambahkan ini
     if (!token) {
       alert("Token tidak ditemukan. Harap login ulang.");
       navigate("/login");
