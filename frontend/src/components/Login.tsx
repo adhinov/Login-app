@@ -18,21 +18,31 @@ const Login = () => {
   const navigate = useNavigate();
 
   const handleLogin = async () => {
-    setMessage('');
-    try {
-      const res = await axios.post(`${apiUrl}/api/auth/login`, {
-        email,
-        password,
-      });
+  setMessage('');
+  try {
+    const res = await axios.post(`${apiUrl}/api/auth/login`, {
+      email,
+      password,
+    });
 
-      if (res.data && res.data.user) {
-        navigate('/welcome', {
-          state: {
-            email: res.data.user.email,
-            username: res.data.user.username || 'User',
-          },
-        });
-      }
+    const token = res.data.token;
+    localStorage.setItem('token', token);
+
+    // Decode token → ambil payload
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const role = payload.role;
+    const userEmail = payload.email;
+
+    if (role === 'admin') {
+      navigate('/admin');
+    } else {
+      navigate('/welcome', {
+        state: {
+          email: userEmail,
+          username: res.data.user.username || 'User',
+        },
+      });
+    }
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         setMessage(err.response?.data?.message || 'Login gagal.');
