@@ -1,42 +1,43 @@
-// backend/server.js
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
-const db = require("./models/db");
-
-// Route imports
-const authRoutes = require("./routes/auth"); // Untuk auth (Google / Register)
-const loginRoutes = require("./routes/authRoutes"); // Untuk login manual (email & password)
-const passwordRoutes = require("./routes/passwordRoutes");
+const authRoutes = require("./routes/authRoutes");
 const protectedRoutes = require("./routes/protectedRoutes");
 
 dotenv.config();
 
 const app = express();
-const PORT = parseInt(process.env.PORT) || 5000;
+const PORT = process.env.PORT || 8080;
 
-app.use(cors({
-  origin: "https://login-app-lovat-one.vercel.app",
-  credentials: true,
-}));
+// ✅ Izinkan beberapa origin (localhost dan Vercel)
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://login-app-lovat-one.vercel.app",
+];
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // Izinkan tanpa origin (misalnya Postman)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      } else {
+        return callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+  })
+);
 
 app.use(express.json());
+app.use("/api/auth", authRoutes);
+app.use("/api/protected", protectedRoutes);
 
-// ✅ API Routes
-app.use("/api/auth", authRoutes);            // Google login / register
-app.use("/api", loginRoutes);                // Login manual /api/login
-app.use("/api", passwordRoutes);             // Lupa password / reset
-app.use("/api/protected", protectedRoutes);  // Route dengan auth + role
-
-// ✅ Root route
-app.get("/", (req, res) => res.send("✅ Backend is running!"));
-
-// ✅ Start server
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`🚀 Server berjalan di port ${PORT}`);
+app.get("/", (req, res) => {
+  res.send("🚀 Server berjalan di backend Express + Railway!");
 });
 
-// Optional log
-setInterval(() => {
-  console.log("⏱ Server masih hidup...");
-}, 30000);
+app.listen(PORT, () => {
+  console.log(`🚀 Server berjalan di port ${PORT}`);
+});
