@@ -1,10 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../models/db');
+const verifyToken = require('../middleware/verifyToken'); // ✅ Tambahkan ini
 const authorizeRole = require('../middleware/authorizeRole');
 const { getAllUsers } = require('../controllers/adminController');
-
-router.get('/admin/users', verifyToken, authorizeRole("admin"), getAllUsers);
 
 // GET semua users (hanya admin)
 router.get('/users', authorizeRole('admin'), (req, res) => {
@@ -13,5 +11,8 @@ router.get('/users', authorizeRole('admin'), (req, res) => {
     res.json(results);
   });
 });
+
+// ✅ Route untuk admin-only: lihat semua user
+router.get('/admin/users', verifyToken, authorizeRole('admin'), getAllUsers);
 
 module.exports = router;
