@@ -18,4 +18,13 @@ router.get('/admin', authenticate, authorizeRole('admin'), (req, res) => {
   });
 });
 
+// GET /api/protected/admin/users
+router.get('/admin/users', authorizeRole('admin'), (req, res) => {
+  db.query('SELECT id, email, role, created_at FROM users', (err, results) => {
+    if (err) return res.status(500).json({ message: 'Database error', error: err });
+
+    res.json({ users: results });
+  });
+});
+
 module.exports = router;
