@@ -2,6 +2,9 @@ const express = require('express');
 const router = express.Router();
 const db = require('../models/db');
 const authorizeRole = require('../middleware/authorizeRole');
+const { getAllUsers } = require('../controllers/adminController');
+
+router.get('/admin/users', verifyToken, authorizeRole("admin"), getAllUsers);
 
 // GET semua users (hanya admin)
 router.get('/users', authorizeRole('admin'), (req, res) => {

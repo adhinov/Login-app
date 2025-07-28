@@ -3,6 +3,7 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const authRoutes = require("./routes/authRoutes");
 const protectedRoutes = require("./routes/protectedRoutes");
+const adminRoutes = require('./routes/adminRoutes');
 
 dotenv.config();
 
@@ -33,6 +34,7 @@ app.use(
 app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/protected", protectedRoutes);
+app.use('/api/protected', adminRoutes); // base route untuk admin
 
 app.get("/", (req, res) => {
   res.send("🚀 Server berjalan di backend Express + Railway!");
