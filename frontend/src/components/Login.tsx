@@ -1,4 +1,4 @@
-// src/components/login.tsx
+// src/components/Login.tsx
 import { useState } from 'react';
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
@@ -7,8 +7,7 @@ import './FormStyles.css';
 import { signInWithPopup } from 'firebase/auth';
 import { auth, provider } from '../firebase';
 
-const apiUrl = import.meta.env.VITE_API_URL; // ✅ Gunakan dari .env frontend
-console.log('API URL dari env:', import.meta.env.VITE_API_URL);
+const apiUrl = import.meta.env.VITE_API_URL;
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -18,31 +17,29 @@ const Login = () => {
   const navigate = useNavigate();
 
   const handleLogin = async () => {
-  setMessage('');
-  try {
-    const res = await axios.post(`${apiUrl}/api/auth/login`, {
-      email,
-      password,
-    });
-
-    const token = res.data.token;
-    localStorage.setItem('token', token);
-
-    // Decode token → ambil payload
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    const role = payload.role;
-    const userEmail = payload.email;
-
-    if (role === 'admin') {
-      navigate('/admin');
-    } else {
-      navigate('/welcome', {
-        state: {
-          email: userEmail,
-          username: res.data.user.username || 'User',
-        },
+    setMessage('');
+    try {
+      const res = await axios.post(`${apiUrl}/api/auth/login`, {
+        email,
+        password,
       });
-    }
+
+      if (res.data && res.data.token && res.data.user) {
+        // ✅ Simpan token ke localStorage
+        localStorage.setItem('token', res.data.token);
+
+        // ✅ Redirect berdasarkan role
+        if (res.data.user.role === 'admin') {
+          navigate('/admin');
+        } else {
+          navigate('/welcome', {
+            state: {
+              email: res.data.user.email,
+              username: res.data.user.username || 'User',
+            },
+          });
+        }
+      }
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         setMessage(err.response?.data?.message || 'Login gagal.');
@@ -60,9 +57,6 @@ const Login = () => {
 
       console.log('Firebase token:', token);
       localStorage.setItem('firebaseToken', token);
-
-      // ⬇️ Kirim token ke backend jika endpoint sudah tersedia
-      // await axios.post(`${apiUrl}/api/auth/google-login`, { token });
 
       navigate('/welcome', {
         state: {
