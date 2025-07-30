@@ -11,6 +11,7 @@ function verifyToken(req, res, next) {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log('✅ Token terverifikasi:', decoded);
     req.user = decoded; // penting!
     next();
   } catch (err) {

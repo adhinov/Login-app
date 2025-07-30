@@ -7,7 +7,7 @@ import './FormStyles.css';
 import { signInWithPopup } from 'firebase/auth';
 import { auth, provider } from '../firebase';
 
-const apiUrl = import.meta.env.VITE_API_URL;
+const BASE_URL = import.meta.env.VITE_API_URL;
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -16,37 +16,34 @@ const Login = () => {
   const [message, setMessage] = useState('');
   const navigate = useNavigate();
 
-  const handleLogin = async () => {
+  const handleLogin = () => {
     setMessage('');
-    try {
-      const res = await axios.post(`${apiUrl}/api/auth/login`, {
-        email,
-        password,
-      });
 
-      if (res.data && res.data.token && res.data.user) {
-        // ✅ Simpan token ke localStorage
-        localStorage.setItem('token', res.data.token);
+    axios
+      .post(`${BASE_URL}/api/auth/login`, { email, password })
+      .then((res) => {
+        const { token, user } = res.data;
 
-        // ✅ Redirect berdasarkan role
-        if (res.data.user.role === 'admin') {
-          navigate('/admin');
-        } else {
-          navigate('/welcome', {
-            state: {
-              email: res.data.user.email,
-              username: res.data.user.username || 'User',
-            },
-          });
+        if (token && user) {
+          localStorage.setItem('token', token);
+          console.log('✅ Token disimpan:', token);
+
+          if (user.role === 'admin') {
+            navigate('/admin');
+          } else {
+            navigate('/welcome', {
+              state: {
+                email: user.email,
+                username: user.username || 'User',
+              },
+            });
+          }
         }
-      }
-    } catch (err: unknown) {
-      if (axios.isAxiosError(err)) {
+      })
+      .catch((err) => {
+        console.error('❌ Login gagal:', err);
         setMessage(err.response?.data?.message || 'Login gagal.');
-      } else {
-        setMessage('Terjadi kesalahan saat login.');
-      }
-    }
+      });
   };
 
   const handleGoogleLogin = async () => {
@@ -66,7 +63,7 @@ const Login = () => {
       });
     } catch (error) {
       console.error('Google login error:', error);
-      alert('Login gagal.');
+      alert('Login dengan Google gagal.');
     }
   };
 
