@@ -30,6 +30,8 @@ app.use(
   })
 );
 
+console.log("🚀 server.js dimuat");
+
 // Middleware global
 app.use(express.json());
 
