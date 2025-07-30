@@ -32,7 +32,7 @@ exports.signup = async (req, res) => {
         VALUES (?, ?, ?, ?, ?)
       `;
 
-      const defaultRole = "user"; // Default role untuk user baru
+      const defaultRole = "user";
       db.query(
         insertUserQuery,
         [email, username, phone, hashedPassword, defaultRole],
@@ -82,6 +82,9 @@ exports.login = async (req, res) => {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
+    // ✅ Log JWT_SECRET
+    console.log("🧪 JWT_SECRET saat login:", process.env.JWT_SECRET);
+
     // ✅ Generate JWT
     const token = jwt.sign(
       {
@@ -92,6 +95,9 @@ exports.login = async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
+
+    // ✅ Log token untuk debug (tidak dikirim ke frontend log)
+    console.log("✅ Token dikirim ke client:", token);
 
     return res.status(200).json({
       message: "Login successful",
