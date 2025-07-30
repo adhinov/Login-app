@@ -44,44 +44,49 @@ export default function AdminDashboard() {
     navigate("/login");
   };
 
-  return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4 flex items-center gap-2">
-        📋 Dashboard Admin
-      </h1>
-      <button
-        onClick={handleLogout}
-        className="mb-4 px-4 py-2 bg-black text-white rounded"
-      >
-        Logout
-      </button>
+    return (
+    <div className="min-h-screen bg-gray-200 text-gray-800 p-6 flex flex-col justify-between">
+      <div>
+        <h1 className="text-4xl font-bold mb-6 flex items-center gap-2">
+          📋 Dashboard Admin
+        </h1>
 
-      {loading ? (
-        <p className="text-gray-600">Loading...</p>
-      ) : (
-        <table className="table-auto border-collapse w-full">
-          <thead>
-            <tr className="bg-gray-200">
-              <th className="border p-2">ID</th>
-              <th className="border p-2">Email</th>
-              <th className="border p-2">Role</th>
-              <th className="border p-2">Created At</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((user) => (
-              <tr key={user.id}>
-                <td className="border p-2">{user.id}</td>
-                <td className="border p-2">{user.email}</td>
-                <td className="border p-2">{user.role}</td>
-                <td className="border p-2">
-                  {new Date(user.created_at).toLocaleString()}
-                </td>
+        <div className="bg-white shadow-md rounded-lg overflow-hidden border border-gray-300">
+          <table className="w-full text-left">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="p-3 border-b">ID</th>
+                <th className="p-3 border-b">Email</th>
+                <th className="p-3 border-b">Role</th>
+                <th className="p-3 border-b">Created At</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+            </thead>
+            <tbody>
+              {users.map((user) => (
+                <tr key={user.id} className="hover:bg-gray-50">
+                  <td className="p-3 border-b">{user.id}</td>
+                  <td className="p-3 border-b">{user.email}</td>
+                  <td className="p-3 border-b">{user.role}</td>
+                  <td className="p-3 border-b">
+                    {new Date(user.created_at).toLocaleString()}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Logout Button */}
+      <div className="flex justify-end mt-6">
+        <button
+          onClick={handleLogout}
+          className="px-5 py-2 bg-black text-white rounded-md hover:bg-gray-800 transition"
+        >
+          Logout
+        </button>
+      </div>
     </div>
   );
+
 }
