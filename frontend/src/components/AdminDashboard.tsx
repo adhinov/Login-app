@@ -16,7 +16,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    console.log("🔐 Token:", token); // <-- tambahkan ini
+    console.log("🔐 Token:", token);
     if (!token) {
       alert("Token tidak ditemukan. Harap login ulang.");
       navigate("/login");
@@ -44,37 +44,41 @@ export default function AdminDashboard() {
     navigate("/login");
   };
 
-    return (
+  return (
     <div className="min-h-screen bg-gray-200 text-gray-800 p-6 flex flex-col justify-between">
       <div>
         <h1 className="text-4xl font-bold mb-6 flex items-center gap-2">
           📋 Dashboard Admin
         </h1>
 
-        <div className="bg-white shadow-md rounded-lg overflow-hidden border border-gray-300">
-          <table className="w-full text-left">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="p-3 border-b">ID</th>
-                <th className="p-3 border-b">Email</th>
-                <th className="p-3 border-b">Role</th>
-                <th className="p-3 border-b">Created At</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((user) => (
-                <tr key={user.id} className="hover:bg-gray-50">
-                  <td className="p-3 border-b">{user.id}</td>
-                  <td className="p-3 border-b">{user.email}</td>
-                  <td className="p-3 border-b">{user.role}</td>
-                  <td className="p-3 border-b">
-                    {new Date(user.created_at).toLocaleString()}
-                  </td>
+        {loading ? (
+          <p className="text-gray-600 text-lg">Loading data users...</p>
+        ) : (
+          <div className="bg-white shadow-md rounded-lg overflow-hidden border border-gray-300">
+            <table className="w-full text-left">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="p-3 border-b">ID</th>
+                  <th className="p-3 border-b">Email</th>
+                  <th className="p-3 border-b">Role</th>
+                  <th className="p-3 border-b">Created At</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {users.map((user) => (
+                  <tr key={user.id} className="hover:bg-gray-50">
+                    <td className="p-3 border-b">{user.id}</td>
+                    <td className="p-3 border-b">{user.email}</td>
+                    <td className="p-3 border-b">{user.role}</td>
+                    <td className="p-3 border-b">
+                      {new Date(user.created_at).toLocaleString()}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* Logout Button */}
@@ -88,5 +92,4 @@ export default function AdminDashboard() {
       </div>
     </div>
   );
-
 }
