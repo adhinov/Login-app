@@ -7,6 +7,8 @@ function verifyToken(req, res, next) {
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return res.status(401).json({ message: "Akses ditolak. Token tidak ditemukan." });
   }
+  
+  console.log("🛡️ [verifyToken] Middleware dijalankan");
 
   const token = authHeader.split(" ")[1];
 
