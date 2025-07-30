@@ -44,7 +44,7 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-200 text-gray-800 flex flex-col justify-between p-6 relative">
+    <div className="min-h-screen bg-gray-200 text-gray-700 flex flex-col justify-between p-6 relative">
       <div>
         <h1 className="text-4xl font-bold mb-6 flex items-center gap-2">
           📋 Dashboard Admin
