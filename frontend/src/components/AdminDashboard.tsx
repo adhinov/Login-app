@@ -16,7 +16,6 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    console.log("🔐 Token:", token);
     if (!token) {
       alert("Token tidak ditemukan. Harap login ulang.");
       navigate("/login");
@@ -45,7 +44,7 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-200 text-gray-800 p-6 flex flex-col justify-between">
+    <div className="min-h-screen bg-gray-200 text-gray-800 flex flex-col justify-between p-6 relative">
       <div>
         <h1 className="text-4xl font-bold mb-6 flex items-center gap-2">
           📋 Dashboard Admin
@@ -54,23 +53,26 @@ export default function AdminDashboard() {
         {loading ? (
           <p className="text-gray-600 text-lg">Loading data users...</p>
         ) : (
-          <div className="bg-white shadow-md rounded-lg overflow-hidden border border-gray-300">
+          <div className="bg-white border border-gray-400 rounded-lg shadow-md overflow-x-auto">
             <table className="w-full text-left">
-              <thead className="bg-gray-100">
+              <thead className="bg-gray-100 text-gray-700 border-b border-gray-300">
                 <tr>
-                  <th className="p-3 border-b">ID</th>
-                  <th className="p-3 border-b">Email</th>
-                  <th className="p-3 border-b">Role</th>
-                  <th className="p-3 border-b">Created At</th>
+                  <th className="p-3">ID</th>
+                  <th className="p-3">Email</th>
+                  <th className="p-3">Role</th>
+                  <th className="p-3">Created At</th>
                 </tr>
               </thead>
               <tbody>
                 {users.map((user) => (
-                  <tr key={user.id} className="hover:bg-gray-50">
-                    <td className="p-3 border-b">{user.id}</td>
-                    <td className="p-3 border-b">{user.email}</td>
-                    <td className="p-3 border-b">{user.role}</td>
-                    <td className="p-3 border-b">
+                  <tr
+                    key={user.id}
+                    className="hover:bg-gray-50 border-t border-gray-200"
+                  >
+                    <td className="p-3">{user.id}</td>
+                    <td className="p-3">{user.email}</td>
+                    <td className="p-3">{user.role}</td>
+                    <td className="p-3">
                       {new Date(user.created_at).toLocaleString()}
                     </td>
                   </tr>
@@ -81,8 +83,8 @@ export default function AdminDashboard() {
         )}
       </div>
 
-      {/* Logout Button */}
-      <div className="flex justify-end mt-6">
+      {/* Tombol Logout di kanan bawah */}
+      <div className="absolute bottom-6 right-6">
         <button
           onClick={handleLogout}
           className="px-5 py-2 bg-black text-white rounded-md hover:bg-gray-800 transition"
