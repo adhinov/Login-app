@@ -1,20 +1,16 @@
-// backend/middleware/authorizeRole.js
-function authorizeRole(requiredRole) {
-  return (req, res, next) => {
+module.exports = function (requiredRole) {
+  return function (req, res, next) {
+    console.log("🔐 authorizeRole dijalankan");
+    console.log("🔍 req.user:", req.user); // ⬅️ log isinya
+
     if (!req.user) {
-      console.log("❌ req.user tidak ditemukan!");
-      return res.status(403).json({ message: "Access denied: token missing user data" });
+      return res.status(401).json({ message: "Token tidak valid atau tidak ditemukan (authorizeRole)." });
     }
 
-    // ✅ Tambahkan log di sini (baris ini)
-    console.log("🔑 Token payload di authorizeRole:", req.user);
-
     if (req.user.role !== requiredRole) {
-      return res.status(403).json({ message: "Access denied: insufficient role" });
+      return res.status(403).json({ message: "Akses ditolak. Role tidak sesuai." });
     }
 
     next();
   };
-}
-
-module.exports = authorizeRole;
+};
