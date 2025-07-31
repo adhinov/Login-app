@@ -1,5 +1,3 @@
-// backend/controllers/passwordController.js
-
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const db = require("../models/db");
@@ -10,15 +8,14 @@ const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 // ✅ Ganti link frontend (bukan localhost)
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 
-// ✅ Konfigurasi transporter Mailtrap (atau SMTP production)
 const transporter = nodemailer.createTransport({
-  host: process.env.MAILTRAP_HOST,
-  port: process.env.MAILTRAP_PORT,
+  service: 'gmail',
   auth: {
-    user: process.env.MAILTRAP_USER,
-    pass: process.env.MAILTRAP_PASS,
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS, // app password
   },
 });
+
 
 // ✅ Kirim email lupa password
 exports.forgotPassword = (req, res) => {
