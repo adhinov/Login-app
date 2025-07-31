@@ -6,6 +6,7 @@ const cors = require("cors");
 const authRoutes = require("./routes/authRoutes");
 const protectedRoutes = require("./routes/protectedRoutes");
 const adminRoutes = require("./routes/adminRoutes");
+const passwordRoutes = require('./routes/passwordRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -39,6 +40,7 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/protected", protectedRoutes);
 app.use("/api/protected", adminRoutes); // base route /api/protected/admin/...
+app.use('/api', passwordRoutes);
 
 // Root route
 app.get("/", (req, res) => {
