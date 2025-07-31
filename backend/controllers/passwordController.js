@@ -5,6 +5,8 @@ const nodemailer = require("nodemailer");
 
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 
+console.log('EMAIL_USER:', process.env.EMAIL_USER); // ✅ Debug env
+
 // ✅ Ganti link frontend (bukan localhost)
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 
