@@ -27,23 +27,25 @@ body, html {
 
 .welcome-box h1 {
   margin-bottom: 20px;
-  font-size: 24px;
+  font-size: 26px;
   color: #60a5fa;
 }
 
 .welcome-box button {
-  background-color: #3b82f6;
+  background-color: #0048bc;
   border: none;
+  margin-top: 1.8rem;
   padding: 10px 20px;
   color: white;
   border-radius: 8px;
   font-size: 16px;
+  float: left;
   cursor: pointer;
-  transition: background 0.3s ease;
+  transition: background 0.2s ease;
 }
 
 .welcome-box button:hover {
-  background-color: #2563eb;
+  background-color: #eb2525;
 }
 
 .error-message {
