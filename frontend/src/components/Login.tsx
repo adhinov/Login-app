@@ -41,16 +41,14 @@ const Login = () => {
           }
         }
       })
-      .catch((error) => {
-        if (axios.isAxiosError(error)) {
-          const msg = error.response?.data?.message;
-          setMessage(msg || 'Login gagal. Silakan coba lagi.');
-          console.error('❌ Login gagal:', msg);
-        } else {
-          console.error('❌ Login error:', error);
-          setMessage('Terjadi kesalahan saat login.');
-        }
+      .catch((err) => {
+        const msg = err?.response?.data?.message;
+        console.error('❌ Login gagal:', msg || err);
+
+        // tampilkan pesan dari backend jika ada
+        setMessage(msg || 'Login gagal. Silakan coba lagi.');
       })
+
       .finally(() => setLoading(false));
   };
 
