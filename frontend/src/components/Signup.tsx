@@ -26,15 +26,27 @@ const Signup = () => {
 
   const handleSignup = async () => {
     setMessage('');
+
+    // ✅ Validasi frontend sebelum request ke backend
+    if (!formData.email.includes('@') || !formData.email.includes('.')) {
+      setMessage('Format email tidak valid');
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      setMessage('Password harus minimal 6 karakter');
+      return;
+    }
+
     try {
       await axios.post(`${apiUrl}/api/auth/signup`, formData);
       alert('Signup berhasil! Silakan login.');
       navigate('/login');
-        } catch (err: unknown) {
+    } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
-        alert(err.response?.data?.message || 'Signup gagal. Coba lagi.');
+        setMessage(err.response?.data?.message || 'Signup gagal. Coba lagi.');
       } else {
-        alert('Terjadi kesalahan saat signup.');
+        setMessage('Terjadi kesalahan saat signup.');
       }
     }
   };
@@ -81,7 +93,7 @@ const Signup = () => {
             <input
               type="text"
               name="phone"
-              placeholder="Maukan No HP"
+              placeholder="Masukan No HP"
               value={formData.phone}
               onChange={handleChange}
               required
@@ -108,18 +120,22 @@ const Signup = () => {
               {showPassword ? <FaEyeSlash /> : <FaEye />}
             </span>
           </div>
+          {/* ✅ Teks bantu di bawah password */}
+          <small style={{ fontSize: '12px', color: '#888', marginTop: '4px', display: 'block' }}>
+            Panjang password minimal 6 karakter
+          </small>
         </div>
+
+        {message && <p className="error-message">{message}</p>}
 
         <button className="form-button black" onClick={handleSignup}>
           Daftar
         </button>
 
-        {message && <p className="error-message">{message}</p>}
-
         <div className="form-footer">
           Sudah punya akun?{' '}
           <Link to="/login" className="link-blue">
-           Kembali ke Login
+            Kembali ke Login
           </Link>
         </div>
       </div>
