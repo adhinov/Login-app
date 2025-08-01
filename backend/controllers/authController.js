@@ -6,8 +6,20 @@ const jwt = require("jsonwebtoken");
 exports.signup = async (req, res) => {
   const { email, username, phone, password } = req.body;
 
+  // Validasi kosong
   if (!email || !username || !phone || !password) {
-    return res.status(400).json({ message: "All fields are required" });
+    return res.status(400).json({ message: "Semua field wajib diisi" });
+  }
+
+  // Validasi format email sederhana
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ message: "Format email tidak valid" });
+  }
+
+  // Validasi panjang minimal password
+  if (password.length < 6) {
+    return res.status(400).json({ message: "Password minimal 6 karakter" });
   }
 
   const checkUserQuery = "SELECT * FROM users WHERE email = ?";
@@ -18,13 +30,13 @@ exports.signup = async (req, res) => {
     }
 
     if (results.length > 0) {
-      return res.status(409).json({ message: "Email already registered" });
+      return res.status(409).json({ message: "Email sudah terdaftar" });
     }
 
     bcrypt.hash(password, 10, (err, hashedPassword) => {
       if (err) {
         console.error("❌ Error hashing password:", err);
-        return res.status(500).json({ message: "Error hashing password" });
+        return res.status(500).json({ message: "Gagal mengenkripsi password" });
       }
 
       const insertUserQuery = `
@@ -42,7 +54,7 @@ exports.signup = async (req, res) => {
             return res.status(500).json({ message: "Database error" });
           }
 
-          return res.status(201).json({ message: "User registered successfully" });
+          return res.status(201).json({ message: "Pendaftaran berhasil" });
         }
       );
     });
