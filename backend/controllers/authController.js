@@ -17,11 +17,6 @@ exports.signup = async (req, res) => {
       return res.status(500).json({ message: "Database error" });
     }
 
-    // Saat login
-    if (results.length === 0) {
-      return res.status(404).json({ message: "Email belum terdaftar" });
-    }
-
     if (results.length > 0) {
       return res.status(409).json({ message: "Email already registered" });
     }
@@ -70,27 +65,17 @@ exports.login = async (req, res) => {
     }
 
     if (results.length === 0) {
-      console.warn("⚠️ User not found:", email);
-      return res.status(401).json({ message: "Invalid email or password" });
+      console.warn("⚠️ Email tidak ditemukan:", email);
+      return res.status(404).json({ message: "Email belum terdaftar" });
     }
 
     const user = results[0];
     const isMatch = await bcrypt.compare(password, user.password);
 
-    // Debug logs
-    console.log("🧪 Email:", email);
-    console.log("🧪 Input password:", password);
-    console.log("🧪 DB password hash:", user.password);
-    console.log("🧪 Password match result:", isMatch);
-
     if (!isMatch) {
-      return res.status(401).json({ message: "Invalid email or password" });
+      return res.status(401).json({ message: "Password salah" });
     }
 
-    // ✅ Log JWT_SECRET
-    console.log("🧪 JWT_SECRET saat login:", process.env.JWT_SECRET);
-
-    // ✅ Generate JWT
     const token = jwt.sign(
       {
         id: user.id,
@@ -100,9 +85,6 @@ exports.login = async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
-
-    // ✅ Log token untuk debug (tidak dikirim ke frontend log)
-    console.log("✅ Token dikirim ke client:", token);
 
     return res.status(200).json({
       message: "Login successful",
