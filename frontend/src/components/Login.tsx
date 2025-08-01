@@ -16,34 +16,43 @@ const Login = () => {
   const [message, setMessage] = useState('');
   const navigate = useNavigate();
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     setMessage('');
 
-    axios
-      .post(`${BASE_URL}/api/auth/login`, { email, password })
-      .then((res) => {
-        const { token, user } = res.data;
-
-        if (token && user) {
-          localStorage.setItem('token', token);
-          console.log('✅ Token disimpan:', token);
-
-          if (user.role === 'admin') {
-            navigate('/admin');
-          } else {
-            navigate('/welcome', {
-              state: {
-                email: user.email,
-                username: user.username || 'User',
-              },
-            });
-          }
-        }
-      })
-      .catch((err) => {
-        console.error('❌ Login gagal:', err);
-        setMessage(err.response?.data?.message || 'Login gagal.');
+    try {
+      const res = await axios.post(`${BASE_URL}/api/auth/login`, {
+        email,
+        password,
       });
+
+      const { token, user } = res.data;
+
+      if (token && user) {
+        localStorage.setItem('token', token);
+        console.log('✅ Token disimpan:', token);
+
+        if (user.role === 'admin') {
+          navigate('/admin');
+        } else {
+          navigate('/welcome', {
+            state: {
+              email: user.email,
+              username: user.username || 'User',
+            },
+          });
+        }
+      }
+    } catch (err: any) {
+      console.error('❌ Login gagal:', err);
+      const status = err.response?.status;
+      if (status === 404) {
+        setMessage('Email belum terdaftar.');
+      } else if (status === 401) {
+        setMessage('Password salah.');
+      } else {
+        setMessage('Login gagal. Silakan coba lagi.');
+      }
+    }
   };
 
   const handleGoogleLogin = async () => {
@@ -107,7 +116,9 @@ const Login = () => {
         </div>
 
         <div className="form-footer right">
-          <Link to="/forgot-password" className="link-blue">Lupa Password?</Link>
+          <Link to="/forgot-password" className="link-blue">
+            Lupa Password?
+          </Link>
         </div>
 
         <button className="form-button black" onClick={handleLogin}>
@@ -128,7 +139,10 @@ const Login = () => {
         </button>
 
         <div className="form-footer">
-          Belum punya akun? <Link to="/signup" className="link-blue">Daftar</Link>
+          Belum punya akun?{' '}
+          <Link to="/signup" className="link-blue">
+            Daftar
+          </Link>
         </div>
       </div>
     </div>
