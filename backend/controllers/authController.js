@@ -17,6 +17,11 @@ exports.signup = async (req, res) => {
       return res.status(500).json({ message: "Database error" });
     }
 
+    // Saat login
+    if (results.length === 0) {
+      return res.status(404).json({ message: "Email belum terdaftar" });
+    }
+
     if (results.length > 0) {
       return res.status(409).json({ message: "Email already registered" });
     }
@@ -54,7 +59,7 @@ exports.login = async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return res.status(400).json({ message: "Email and password are required" });
+    return res.status(400).json({ message: "Email dan Password belum diisi" });
   }
 
   const findUserQuery = "SELECT * FROM users WHERE email = ?";
