@@ -1,4 +1,3 @@
-// src/components/Login.tsx
 import { useState } from 'react';
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
@@ -14,45 +13,45 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogin = async () => {
+  const handleLogin = () => {
+    setLoading(true);
     setMessage('');
 
-    try {
-      const res = await axios.post(`${BASE_URL}/api/auth/login`, {
-        email,
-        password,
-      });
+    axios
+      .post(`${BASE_URL}/api/auth/login`, { email, password })
+      .then((res) => {
+        const { token, user } = res.data;
 
-      const { token, user } = res.data;
+        if (token && user) {
+          localStorage.setItem('token', token);
+          console.log('✅ Token disimpan:', token);
 
-      if (token && user) {
-        localStorage.setItem('token', token);
-        console.log('✅ Token disimpan:', token);
-
-        if (user.role === 'admin') {
-          navigate('/admin');
-        } else {
-          navigate('/welcome', {
-            state: {
-              email: user.email,
-              username: user.username || 'User',
-            },
-          });
+          if (user.role === 'admin') {
+            navigate('/admin');
+          } else {
+            navigate('/welcome', {
+              state: {
+                email: user.email,
+                username: user.username || 'User',
+              },
+            });
+          }
         }
-      }
-    } catch (err: any) {
-      console.error('❌ Login gagal:', err);
-      const status = err.response?.status;
-      if (status === 404) {
-        setMessage('Email belum terdaftar.');
-      } else if (status === 401) {
-        setMessage('Password salah.');
-      } else {
-        setMessage('Login gagal. Silakan coba lagi.');
-      }
-    }
+      })
+      .catch((error) => {
+        if (axios.isAxiosError(error)) {
+          const msg = error.response?.data?.message;
+          setMessage(msg || 'Login gagal. Silakan coba lagi.');
+          console.error('❌ Login gagal:', msg);
+        } else {
+          console.error('❌ Login error:', error);
+          setMessage('Terjadi kesalahan saat login.');
+        }
+      })
+      .finally(() => setLoading(false));
   };
 
   const handleGoogleLogin = async () => {
@@ -116,13 +115,11 @@ const Login = () => {
         </div>
 
         <div className="form-footer right">
-          <Link to="/forgot-password" className="link-blue">
-            Lupa Password?
-          </Link>
+          <Link to="/forgot-password" className="link-blue">Lupa Password?</Link>
         </div>
 
-        <button className="form-button black" onClick={handleLogin}>
-          Masuk
+        <button className="form-button black" onClick={handleLogin} disabled={loading}>
+          {loading ? 'Memproses...' : 'Masuk'}
         </button>
 
         {message && <p className="error-message">{message}</p>}
@@ -139,10 +136,7 @@ const Login = () => {
         </button>
 
         <div className="form-footer">
-          Belum punya akun?{' '}
-          <Link to="/signup" className="link-blue">
-            Daftar
-          </Link>
+          Belum punya akun? <Link to="/signup" className="link-blue">Daftar</Link>
         </div>
       </div>
     </div>
