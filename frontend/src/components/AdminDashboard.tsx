@@ -44,9 +44,9 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-gray-100 text-gray-800 flex flex-col justify-between p-6">
       <div>
-        <h1 className="text-4xl font-bold mb-6 flex items-center gap-2">
+        <h3 className="text-4xl font-bold mb-6 flex items-center gap-2">
           📋 Dashboard Admin
-        </h1>
+        </h3>
 
         <div className="bg-white border border-gray-300 shadow-md rounded-lg overflow-x-auto">
           <table className="min-w-full text-left text-sm">
