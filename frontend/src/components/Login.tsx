@@ -53,20 +53,24 @@ const Login = () => {
   };
 
   const handleGoogleLogin = async () => {
-    try {
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      const token = await user.getIdToken();
+  try {
+    const result = await signInWithPopup(auth, provider);
+    const user = result.user;
 
-      console.log('Firebase token:', token);
-      localStorage.setItem('firebaseToken', token);
+    const response = await axios.post(`${BASE_URL}/api/auth/google-login`, {
+      email: user.email,
+      username: user.displayName || 'User',
+    });
 
-      navigate('/welcome', {
-        state: {
-          email: user.email,
-          username: user.displayName || 'User',
-        },
-      });
+    const { token, user: userData } = response.data;
+    localStorage.setItem('token', token);
+
+    navigate('/welcome', {
+      state: {
+        email: userData.email,
+        username: userData.username || 'User',
+      },
+    });
     } catch (error) {
       console.error('Google login error:', error);
       alert('Login dengan Google gagal.');
