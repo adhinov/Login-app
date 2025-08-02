@@ -129,28 +129,28 @@ exports.googleLogin = async (req, res) => {
     if (results.length === 0) {
       // Jika user belum ada, tambahkan
       const insertQuery = `
-        INSERT INTO users (email, username, password, role)
-        VALUES (?, ?, ?, ?)
-      `;
+      INSERT INTO users (email, username, password, role)
+      VALUES (?, ?, ?, ?)
+    `;
 
-    db.query(insertQuery, [email, username || 'User', 'user'], (err, result) => {
-        if (err) {
-          console.error("❌ Insert user Google error:", err);
-          return res.status(500).json({ message: "Gagal menambahkan user baru" });
-        }
+    db.query(insertQuery, [email, username || 'User', '', 'user'], (err, result) => {
+      if (err) {
+        console.error("❌ Insert user Google error:", err);
+        return res.status(500).json({ message: "Gagal menambahkan user baru" });
+      }
 
-        const token = jwt.sign(
-          { id: result.insertId, email, role: 'user' },
-          process.env.JWT_SECRET,
-          { expiresIn: "1d" }
-        );
+      const token = jwt.sign(
+        { id: result.insertId, email, role: 'user' },
+        process.env.JWT_SECRET,
+        { expiresIn: "1d" }
+      );
 
-        return res.status(201).json({
-          message: "User baru dibuat dari Google",
-          token,
-          user: { id: result.insertId, email, username, role: 'user' }
-        });
+      return res.status(201).json({
+        message: "User baru dibuat dari Google",
+        token,
+        user: { id: result.insertId, email, username, role: 'user' }
       });
+    });
     } else {
       // Jika user sudah ada
       const user = results[0];
