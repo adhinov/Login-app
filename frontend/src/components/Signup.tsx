@@ -20,24 +20,30 @@ const Signup = () => {
 
   const [message, setMessage] = useState('');
 
+  const validateForm = () => {
+    const { email, username, phone, password } = formData;
+
+    if (!email) return 'Email belum diisi';
+    if (!/\S+@\S+\.\S+/.test(email)) return 'Format email tidak valid';
+    if (!username) return 'Username belum diisi';
+    if (!phone) return 'No. HP belum diisi';
+    if (!password) return 'Password belum diisi';
+    if (password.length < 6) return 'Password minimal 6 karakter';
+    return '';
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSignup = async () => {
+    const validationError = validateForm();
+    if (validationError) {
+      setMessage(validationError);
+      return;
+    }
+
     setMessage('');
-
-    // ✅ Validasi frontend sebelum request ke backend
-    if (!formData.email.includes('@') || !formData.email.includes('.')) {
-      setMessage('Format email tidak valid');
-      return;
-    }
-
-    if (formData.password.length < 6) {
-      setMessage('Password harus minimal 6 karakter');
-      return;
-    }
-
     try {
       await axios.post(`${apiUrl}/api/auth/signup`, formData);
       alert('Signup berhasil! Silakan login.');
@@ -120,17 +126,14 @@ const Signup = () => {
               {showPassword ? <FaEyeSlash /> : <FaEye />}
             </span>
           </div>
-          {/* ✅ Teks bantu di bawah password */}
-          <small style={{ fontSize: '12px', color: '#888', marginTop: '4px', display: 'block' }}>
-            Panjang password minimal 6 karakter
-          </small>
+          <small className="note">Panjang password minimal 6 karakter</small>
         </div>
-
-        {message && <p className="error-message">{message}</p>}
 
         <button className="form-button black" onClick={handleSignup}>
           Daftar
         </button>
+
+        {message && <p className="error-message">{message}</p>}
 
         <div className="form-footer">
           Sudah punya akun?{' '}
