@@ -129,10 +129,11 @@ exports.googleLogin = async (req, res) => {
     if (results.length === 0) {
       // Jika user belum ada, tambahkan
       const insertQuery = `
-        INSERT INTO users (email, username, role)
-        VALUES (?, ?, ?)
+        INSERT INTO users (email, username, password, role)
+        VALUES (?, ?, ?, ?)
       `;
-      db.query(insertQuery, [email, username || 'User', 'user'], (err, result) => {
+
+    db.query(insertQuery, [email, username || 'User', 'user'], (err, result) => {
         if (err) {
           console.error("❌ Insert user Google error:", err);
           return res.status(500).json({ message: "Gagal menambahkan user baru" });
