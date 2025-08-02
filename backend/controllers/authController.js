@@ -65,6 +65,66 @@ exports.signup = async (req, res) => {
 exports.login = async (req, res) => {
   const { email, password } = req.body;
 
+  exports.googleLogin = async (req, res) => {
+  const { email, username } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ message: "Email tidak ditemukan" });
+  }
+
+  const findUserQuery = "SELECT * FROM users WHERE email = ?";
+  db.query(findUserQuery, [email], async (err, results) => {
+    if (err) {
+      console.error("❌ Google login error:", err);
+      return res.status(500).json({ message: "Database error" });
+    }
+
+    if (results.length === 0) {
+      // Jika user belum ada, tambahkan
+      const insertQuery = `
+        INSERT INTO users (email, username, role)
+        VALUES (?, ?, ?)
+      `;
+      db.query(insertQuery, [email, username || 'User', 'user'], (err, result) => {
+        if (err) {
+          console.error("❌ Insert user Google error:", err);
+          return res.status(500).json({ message: "Gagal menambahkan user baru" });
+        }
+
+        const token = jwt.sign(
+          { email, role: 'user' },
+          process.env.JWT_SECRET,
+          { expiresIn: "1d" }
+        );
+
+        return res.status(200).json({
+          token,
+          user: { email, username, role: 'user' }
+        });
+      });
+      } else {
+        // Jika user sudah ada
+        const user = results[0];
+        const token = jwt.sign(
+          { id: user.id, email: user.email, role: user.role },
+          process.env.JWT_SECRET,
+          { expiresIn: "1d" }
+        );
+
+        return res.status(200).json({
+          token,
+          user: {
+            id: user.id,
+            email: user.email,
+            username: user.username,
+            role: user.role,
+          },
+        });
+      }
+    });
+  };
+
+
   if (!email || !password) {
     return res.status(400).json({ message: "Email dan Password belum diisi" });
   }
