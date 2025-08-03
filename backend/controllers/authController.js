@@ -173,3 +173,25 @@ exports.googleLogin = async (req, res) => {
     }
   });
 };
+
+exports.setPassword = async (req, res) => {
+  const { password } = req.body;
+  const userId = req.user?.id; // dari verifyToken
+
+  if (!password || password.length < 6) {
+    return res.status(400).json({ message: "Password minimal 6 karakter" });
+  }
+
+  const hashed = await bcrypt.hash(password, 10);
+  const query = "UPDATE users SET password = ? WHERE id = ?";
+
+  db.query(query, [hashed, userId], (err, result) => {
+    if (err) {
+      console.error("❌ Error set password:", err);
+      return res.status(500).json({ message: "Gagal menyimpan password" });
+    }
+
+    return res.status(200).json({ message: "Password berhasil disimpan" });
+  });
+};
+
