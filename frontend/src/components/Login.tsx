@@ -44,33 +44,35 @@ const Login = () => {
       .catch((err) => {
         const msg = err?.response?.data?.message;
         console.error('❌ Login gagal:', msg || err);
-
-        // tampilkan pesan dari backend jika ada
         setMessage(msg || 'Login gagal. Silakan coba lagi.');
       })
-
       .finally(() => setLoading(false));
   };
 
   const handleGoogleLogin = async () => {
-  try {
-    const result = await signInWithPopup(auth, provider);
-    const user = result.user;
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
 
-    const response = await axios.post(`${BASE_URL}/api/auth/google-login`, {
-      email: user.email,
-      username: user.displayName || 'User',
-    });
+      const response = await axios.post(`${BASE_URL}/api/auth/google-login`, {
+        email: user.email,
+        username: user.displayName || 'User',
+      });
 
-    const { token, user: userData } = response.data;
-    localStorage.setItem('token', token);
+      const { token, user: userData } = response.data;
+      localStorage.setItem('token', token);
 
-    navigate('/welcome', {
-      state: {
-        email: userData.email,
-        username: userData.username || 'User',
-      },
-    });
+      // Cek apakah user sudah punya password
+      if (!userData.password) {
+        navigate('/set-password');
+      } else {
+        navigate('/welcome', {
+          state: {
+            email: userData.email,
+            username: userData.username || 'User',
+          },
+        });
+      }
     } catch (error) {
       console.error('Google login error:', error);
       alert('Login dengan Google gagal.');
