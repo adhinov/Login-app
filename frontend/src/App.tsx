@@ -5,6 +5,7 @@ import Welcome from "./components/Welcome";
 import ForgotPassword from "./components/ForgotPassword";
 import ResetPassword from "./components/ResetPassword";
 import AdminDashboard from "./components/AdminDashboard";
+import SetPassword from './components/SetPassword';
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route path="/admin" element={<AdminDashboard />} /> {/* ✅ pindah ke sini */}
+          <Route path="/set-password" element={<SetPassword />} />
         </Routes>
       </Router>
     </div>
