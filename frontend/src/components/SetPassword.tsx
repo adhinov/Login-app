@@ -1,9 +1,16 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios, { AxiosError } from "axios";
 import { useNavigate } from "react-router-dom";
+import { jwtDecode } from 'jwt-decode';
 import "./FormStyles.css";
 
 const BASE_URL = import.meta.env.VITE_API_URL;
+
+type DecodedToken = {
+  email: string;
+  exp: number;
+  iat: number;
+};
 
 const SetPassword = () => {
   const [email, setEmail] = useState("");
@@ -11,11 +18,28 @@ const SetPassword = () => {
   const [message, setMessage] = useState("");
   const navigate = useNavigate();
 
+  // Ambil email dari token saat halaman dibuka
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    if (token) {
+      try {
+        const decoded = jwtDecode<DecodedToken>(token);
+        setEmail(decoded.email || "");
+      } catch (err) {
+        console.error("Gagal decode token:", err);
+        setMessage("Token tidak valid. Silakan login ulang.");
+      }
+    } else {
+      setMessage("Token tidak ditemukan. Silakan login dulu.");
+    }
+  }, []);
+
   const handleSetPassword = async () => {
     setMessage("");
 
-    if (!email || !password) {
-      setMessage("Email dan password wajib diisi.");
+    if (!password) {
+      setMessage("Password wajib diisi.");
       return;
     }
 
@@ -25,15 +49,22 @@ const SetPassword = () => {
     }
 
     try {
-      const res = await axios.post(`${BASE_URL}/api/auth/set-password`, {
-        email,
-        password,
-      });
+      const token = localStorage.getItem("token");
+
+      const res = await axios.post(
+        `${BASE_URL}/api/auth/set-password`,
+        { email, password },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       alert(res.data.message || "Password berhasil disetel.");
       navigate("/login");
     } catch (err) {
-      const error = err as AxiosError<{ message: string }>;
+      const error = err as AxiosError<{ message?: string }>;
       setMessage(error.response?.data?.message || "Gagal menyimpan password.");
     }
   };
@@ -45,13 +76,7 @@ const SetPassword = () => {
 
         <div className="form-group">
           <label>Email</label>
-          <input
-            type="email"
-            placeholder="Masukkan email Anda"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
+          <input type="email" value={email} readOnly />
         </div>
 
         <div className="form-group">
