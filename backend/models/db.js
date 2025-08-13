@@ -1,13 +1,18 @@
-const mysql = require("mysql2");
+import pkg from 'pg';
+const { Pool } = pkg;
+import dotenv from 'dotenv';
 
-const db = mysql.createPool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  port: process.env.DB_PORT,
-  waitForConnections: true,
-  connectionLimit: 10,
+dotenv.config();
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false, // Penting untuk Neon
+  },
 });
 
-module.exports = db;
+pool.connect()
+  .then(() => console.log('✅ Terhubung ke Neon PostgreSQL'))
+  .catch((err) => console.error('❌ Gagal konek database:', err.message));
+
+export default pool;

@@ -1,16 +1,14 @@
-module.exports = function (requiredRole) {
+// middleware/authorizeRole.js
+export default function authorizeRole(requiredRole) {
   return function (req, res, next) {
-    console.log("🔐 authorizeRole dijalankan");
-    console.log("🔍 req.user:", req.user); // ⬅️ log isinya
-
     if (!req.user) {
-      return res.status(401).json({ message: "Token tidak valid atau tidak ditemukan (authorizeRole)." });
+      return res.status(401).json({ message: "Token tidak valid atau tidak ditemukan" });
     }
 
     if (req.user.role !== requiredRole) {
-      return res.status(403).json({ message: "Akses ditolak. Role tidak sesuai." });
+      return res.status(403).json({ message: "Akses ditolak. Role tidak sesuai" });
     }
 
     next();
   };
-};
+}

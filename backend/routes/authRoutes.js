@@ -1,13 +1,14 @@
-const express = require('express');
+import express from "express";
+import { login, signup } from "../controllers/authController.js"; // Hanya import fungsi yang ada
+
 const router = express.Router();
-const authController = require('../controllers/authController');
-const { setPassword } = require("../controllers/authController");
-const verifyToken = require("../middleware/verifyToken");
 
-// Gunakan controller langsung
-router.post('/signup', authController.signup);
-router.post('/login', authController.login);
-router.post('/google-login', authController.googleLogin);
-router.post("/set-password", verifyToken, setPassword);
+// Rute-rute otentikasi
+router.post("/signup", signup);
+router.post("/login", login);
 
-module.exports = router;
+// Jika kamu memiliki fungsi googleLogin atau setPassword,
+// kamu bisa tambahkan impor dan rutenya di sini setelah
+// kamu membuatnya di authController.js.
+
+export default router;
