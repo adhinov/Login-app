@@ -14,7 +14,7 @@ const app = express();
 
 // --- Konfigurasi CORS ---
 app.use(cors({
-  origin: "http://localhost:5173",
+  origin: ["http://localhost:5173", "https://login-app-lovat-one.vercel.app"], // Tambahkan domain Vercel di sini
   credentials: true
 }));
 
@@ -37,7 +37,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
-app.use("/api", userRoutes); // Mengubah rute dasar userRoutes ke /api
+app.use("/api", userRoutes);
 
 // --- Start the server ---
 const PORT = process.env.PORT || 5000;
