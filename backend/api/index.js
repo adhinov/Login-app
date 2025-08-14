@@ -2,9 +2,9 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import pool from "./models/db.js"; // Ubah path
-import authRoutes from "./routes/authRoutes.js"; // Ubah path
-import userRoutes from "./routes/userRoutes.js"; // Ubah path
+import pool from "../models/db.js"; // Ubah path
+import authRoutes from "../routes/authRoutes.js"; // Ubah path
+import userRoutes from "../routes/userRoutes.js"; // Ubah path
 
 // Muat variabel lingkungan
 dotenv.config();
