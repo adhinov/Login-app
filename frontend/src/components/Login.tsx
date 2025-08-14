@@ -6,7 +6,8 @@ import './FormStyles.css';
 import { signInWithPopup } from 'firebase/auth';
 import { auth, provider } from '../firebase';
 
-const BASE_URL = import.meta.env.VITE_API_URL;
+// Gunakan nama variabel yang konsisten
+const API_URL = import.meta.env.VITE_API_URL;
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -21,7 +22,7 @@ const Login = () => {
     setMessage('');
 
     axios
-      .post(`${BASE_URL}/api/auth/login`, { email, password })
+      .post(`${API_URL}/api/auth/login`, { email, password })
       .then((res) => {
         const { token, user } = res.data;
 
@@ -29,7 +30,8 @@ const Login = () => {
           localStorage.setItem('token', token);
           console.log('✅ Token disimpan:', token);
 
-          if (user.role === 'admin') {
+          // Logika diperbaiki untuk menangani role sebagai angka (1) atau string ('admin')
+          if (user.role === 'admin' || user.role === 1) {
             navigate('/admin');
           } else {
             navigate('/welcome', {
@@ -54,7 +56,7 @@ const Login = () => {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
-      const response = await axios.post(`${BASE_URL}/api/auth/google-login`, {
+      const response = await axios.post(`${API_URL}/api/auth/google-login`, {
         email: user.email,
         username: user.displayName || 'User',
       });
