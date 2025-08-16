@@ -2,11 +2,11 @@
   "name": "login-backend",
   "version": "1.0.0",
   "description": "API backend for a user login application",
-  "main": "api/index.js",
+  "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "node api/index.js",
-    "dev": "nodemon api/index.js"
+    "start": "node index.js",
+    "dev": "nodemon index.js"
   },
   "dependencies": {
     "bcrypt": "^5.1.0",
