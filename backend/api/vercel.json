@@ -1,0 +1,14 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/backend/api"
+    }
+  ],
+  "builds": [
+    {
+      "src": "backend/package.json",
+      "use": "@vercel/node"
+    }
+  ]
+}
