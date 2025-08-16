@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "build": "echo 'Build successful' && exit 0"
   },
   "dependencies": {
     "bcrypt": "^5.1.0",
