@@ -10,6 +10,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "pg": "^8.11.0",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
     "axios": "^1.10.0",
     "firebase": "^11.10.0",
     "jwt-decode": "^4.0.0",
