@@ -1,0 +1,22 @@
+# 🚫 Jangan upload backend ke Vercel
+../backend
+backend/
+
+# Node & build caches
+node_modules
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Git
+.git
+.gitignore
+
+# Editor / system files
+.vscode
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.env.local
