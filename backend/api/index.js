@@ -14,7 +14,7 @@ const app = express();
 // Konfigurasi CORS
 app.use(cors({
   // Izinkan permintaan dari domain Vercel dan localhost
-  origin: ["http://localhost:5173", "https://login-app-64w2.vercel.app"],
+  origin: ["http://localhost:5173", "https://login-app-64w3.vercel.app"],
   credentials: true
 }));
 
