@@ -4,7 +4,7 @@ import pool from "../models/db.js";
 
 // Fungsi untuk proses registrasi user
 export const signup = async (req, res) => {
-  const { email, username, password, phone_number, role_id } = req.body;
+  const { name, email, password, role_id } = req.body;
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -17,8 +17,8 @@ export const signup = async (req, res) => {
     }
 
     const newUser = await pool.query(
-      "INSERT INTO users (email, username, password, phone_number, role_id) VALUES ($1, $2, $3, $4, $5) RETURNING id, email, username",
-      [email, username, hashedPassword, phone_number, role_id || 2]
+      "INSERT INTO users (name, email, password, role_id) VALUES ($1, $2, $3, $4) RETURNING id, name, email",
+      [name, email, hashedPassword, role_id || 2]
     );
 
     res.status(201).json({ message: "User registered", user: newUser.rows[0] });
@@ -37,13 +37,13 @@ export const login = async (req, res) => {
       [email]
     );
     if (result.rows.length === 0) {
-      return res.status(400).json({ message: "Invalid email or password" });
+      return res.status(400).json({ message: "Email atau password salah" });
     }
 
     const user = result.rows[0];
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(400).json({ message: "Invalid email or password" });
+      return res.status(400).json({ message: "Email atau password salah" });
     }
 
     const token = jwt.sign(
@@ -57,9 +57,8 @@ export const login = async (req, res) => {
       user: {
         id: user.id,
         email: user.email,
-        username: user.username,
-        phone_number: user.phone_number,
-        role: user.role_id === 1 ? 'admin' : 'user'
+        name: user.name, // Pastikan ini sesuai dengan nama kolom di DB
+        role_id: user.role_id
       }
     });
   } catch (error) {
