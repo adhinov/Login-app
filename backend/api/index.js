@@ -6,7 +6,7 @@ import pool from "../models/db.js";
 import authRoutes from "../routes/authRoutes.js";
 import userRoutes from "../routes/userRoutes.js";
 
-// Muat variabel lingkungan dari file .env
+// Muat variabel lingkungan
 dotenv.config();
 
 // Inisialisasi aplikasi Express
@@ -15,7 +15,8 @@ const app = express();
 // Konfigurasi CORS
 // Anda perlu menambahkan URL frontend Anda di sini
 app.use(cors({
-  origin: ["http://localhost:5173", "https://login-app-64w3.vercel.app"],
+  // Izinkan permintaan dari localhost (untuk pengembangan) dan domain frontend Vercel
+  origin: ["http://localhost:5173", "https://login-app-64w2.vercel.app"],
   credentials: true
 }));
 
