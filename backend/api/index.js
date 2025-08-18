@@ -13,10 +13,9 @@ dotenv.config();
 const app = express();
 
 // Konfigurasi CORS
+// Anda perlu menambahkan URL frontend Anda di sini
 app.use(cors({
-  // Izinkan permintaan dari localhost (untuk pengembangan) dan domain Vercel
-  // Pastikan untuk mengganti placeholder dengan URL Vercel yang sebenarnya
-  origin: ["http://localhost:5173", "https://<nama-aplikasi>.vercel.app"],
+  origin: ["http://localhost:5173", "https://login-app-64w3.vercel.app"],
   credentials: true
 }));
 
@@ -38,19 +37,15 @@ app.use(express.json());
 // --- Mendefinisikan Rute ---
 
 // Root route handler
-// Rute ini akan menangani permintaan GET ke URL dasar (misalnya, https://<nama-aplikasi>.vercel.app/)
 app.get("/", (req, res) => {
-  res.status(200).send("Selamat datang di API server Vercel! Server berjalan dengan baik.");
+  res.status(200).send("Selamat datang di API server Vercel!");
 });
 
 // Menggunakan rute otentikasi
-// Semua rute yang didefinisikan di authRoutes.js akan dipasang di bawah path /api/auth
 app.use("/api/auth", authRoutes);
 
 // Menggunakan rute pengguna
-// Semua rute yang didefinisikan di userRoutes.js akan dipasang di bawah path /api
 app.use("/api", userRoutes);
 
 // Perintah utama Vercel: Ekspor aplikasi Express
-// Vercel akan menggunakan 'app' sebagai handler untuk menangani semua permintaan
 export default app;
