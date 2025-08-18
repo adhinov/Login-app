@@ -3,8 +3,8 @@ import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './FormStyles.css';
-import { signInWithPopup } from 'firebase/auth';
-import { auth, provider } from '../firebase';
+import { getAuth, signInWithPopup, GoogleAuthProvider } from 'firebase/auth'; // Import yang lebih eksplisit
+import { app } from '../firebase'; // Asumsikan Anda menginisialisasi app di sini
 
 // Gunakan nama variabel yang konsisten
 const API_URL = import.meta.env.VITE_API_URL;
@@ -16,6 +16,10 @@ const Login = () => {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  // Inisialisasi Firebase Auth
+  const auth = getAuth(app);
+  const provider = new GoogleAuthProvider();
 
   const handleLogin = () => {
     setLoading(true);
@@ -30,7 +34,6 @@ const Login = () => {
           localStorage.setItem('token', token);
           console.log('✅ Token disimpan:', token);
 
-          // Logika diperbaiki untuk menangani role sebagai angka (1) atau string ('admin')
           if (user.role === 'admin' || user.role === 1) {
             navigate('/admin');
           } else {
@@ -64,7 +67,6 @@ const Login = () => {
       const { token, user: userData } = response.data;
       localStorage.setItem('token', token);
 
-      // Cek apakah user sudah punya password
       if (!userData.password) {
         navigate('/set-password');
       } else {
