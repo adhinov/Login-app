@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import axios, { type AxiosResponse, type AxiosError } from 'axios';
+import { getAuth, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { app } from '../firebase';
 import './FormStyles.css';
-import { getAuth, signInWithPopup, GoogleAuthProvider } from 'firebase/auth'; // Import yang lebih eksplisit
-import { app } from '../firebase'; // Asumsikan Anda menginisialisasi app di sini
 
 // Gunakan nama variabel yang konsisten
 const API_URL = import.meta.env.VITE_API_URL;
@@ -17,41 +17,51 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Inisialisasi Firebase Auth
   const auth = getAuth(app);
   const provider = new GoogleAuthProvider();
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     setLoading(true);
     setMessage('');
 
-    axios
-      .post(`${API_URL}/api/auth/login`, { email, password })
-      .then((res) => {
-        const { token, user } = res.data;
+    try {
+      // Tentukan tipe respons yang diharapkan
+      const res: AxiosResponse<{ token: string; user: any }> = await axios.post(
+        `${API_URL}/api/auth/login`,
+        { email, password }
+      );
+      
+      const { token, user } = res.data;
 
-        if (token && user) {
-          localStorage.setItem('token', token);
-          console.log('✅ Token disimpan:', token);
-
-          if (user.role === 'admin' || user.role === 1) {
-            navigate('/admin');
-          } else {
-            navigate('/welcome', {
-              state: {
-                email: user.email,
-                username: user.username || 'User',
-              },
-            });
-          }
+      if (token && user) {
+        localStorage.setItem('token', token);
+        console.log('✅ Login berhasil. Token disimpan.');
+        
+        if (user.role === 'admin' || user.role === 1) {
+          navigate('/admin');
+        } else {
+          navigate('/welcome', {
+            state: {
+              email: user.email,
+              username: user.username || 'User',
+            },
+          });
         }
-      })
-      .catch((err) => {
-        const msg = err?.response?.data?.message;
-        console.error('❌ Login gagal:', msg || err);
+      }
+    } catch (err) {
+      // Gunakan type guard untuk memeriksa apakah error adalah AxiosError
+      if (axios.isAxiosError(err)) {
+        const msg = err.response?.data?.message || err.message;
+        console.error('❌ Login gagal:', msg);
         setMessage(msg || 'Login gagal. Silakan coba lagi.');
-      })
-      .finally(() => setLoading(false));
+      } else {
+        // Tangani error non-Axios (mis. masalah jaringan)
+        console.error('❌ Login gagal (unknown error):', err);
+        setMessage('Terjadi kesalahan yang tidak terduga. Silakan coba lagi.');
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleGoogleLogin = async () => {
@@ -78,8 +88,14 @@ const Login = () => {
         });
       }
     } catch (error) {
-      console.error('Google login error:', error);
-      alert('Login dengan Google gagal.');
+      if (axios.isAxiosError(error)) {
+        const msg = error.response?.data?.message || error.message;
+        console.error('Google login error:', msg);
+        setMessage('Login dengan Google gagal. Silakan coba lagi.');
+      } else {
+        console.error('Google login error (unknown error):', error);
+        setMessage('Terjadi kesalahan yang tidak terduga saat login dengan Google.');
+      }
     }
   };
 
