@@ -2,9 +2,9 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import pool from "./models/db.js"; // Ubah path
-import authRoutes from "./routes/authRoutes.js"; // Ubah path
-import userRoutes from "./routes/userRoutes.js"; // Ubah path
+import pool from "../../models/db.js"; // Path relatif yang benar dari api/
+import authRoutes from "../../routes/authRoutes.js"; // Path relatif yang benar
+import userRoutes from "../../routes/userRoutes.js"; // Path relatif yang benar
 
 // Muat variabel lingkungan
 dotenv.config();
@@ -13,7 +13,6 @@ const app = express();
 
 // Konfigurasi CORS
 app.use(cors({
-  // Izinkan permintaan dari domain Vercel dan localhost
   origin: ["http://localhost:5173", "https://login-app-64w3.vercel.app"],
   credentials: true
 }));
@@ -35,10 +34,7 @@ app.get("/", (req, res) => {
   res.status(200).send("Selamat datang di API server Vercel!");
 });
 
-// Pasang rute otentikasi
 app.use("/api/auth", authRoutes);
-
-// Pasang rute pengguna
 app.use("/api", userRoutes);
 
 // Ekspor aplikasi Express untuk Vercel
