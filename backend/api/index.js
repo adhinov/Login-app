@@ -2,9 +2,9 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import pool from "../../models/db.js"; // Path relatif yang benar dari api/
-import authRoutes from "../../routes/authRoutes.js"; // Path relatif yang benar
-import userRoutes from "../../routes/userRoutes.js"; // Path relatif yang benar
+import pool from "../../models/db.js"; 
+import authRoutes from "../../routes/authRoutes.js"; 
+import userRoutes from "../../routes/userRoutes.js"; 
 
 // Muat variabel lingkungan
 dotenv.config();
@@ -13,6 +13,7 @@ const app = express();
 
 // Konfigurasi CORS
 app.use(cors({
+  // Pastikan URL frontend Anda sudah benar di sini
   origin: ["http://localhost:5173", "https://login-app-64w3.vercel.app"],
   credentials: true
 }));
