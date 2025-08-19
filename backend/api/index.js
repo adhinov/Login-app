@@ -12,9 +12,13 @@ dotenv.config();
 const app = express();
 
 // Konfigurasi CORS
+// Pastikan kedua domain (frontend dan backend) terdaftar di sini
 app.use(cors({
-  // Pastikan URL frontend Anda sudah benar di sini
-  origin: ["http://localhost:5173", "https://login-app-64w3.vercel.app"],
+  origin: [
+    "http://localhost:5173", 
+    "https://login-app-64w3.vercel.app", 
+    "https://login-5jch3ov3l-adhinovs-projects.vercel.app" 
+  ],
   credentials: true
 }));
 
