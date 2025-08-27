@@ -9,7 +9,14 @@ import adminRoutes from "./routes/adminRoutes.js";
 dotenv.config();
 const app = express();
 
-app.use(cors());
+// Konfigurasi CORS
+const corsOptions = {
+  origin: process.env.CORS_ORIGIN, // Mengambil domain frontend dari .env
+  optionsSuccessStatus: 200,
+  methods: ["GET", "POST", "PUT", "DELETE"], // Opsional: Tentukan metode yang diizinkan
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Routes
