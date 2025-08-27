@@ -1,4 +1,4 @@
-// src/pages/signup.tsx
+// src/pages/Signup.tsx
 import { useState } from 'react';
 import { FaEnvelope, FaUser, FaPhone, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
@@ -14,19 +14,19 @@ const Signup = () => {
   const [formData, setFormData] = useState({
     email: '',
     username: '',
-    phone: '',
+    phone_Number: '', // ✅ sesuai backend (phone_number di DB, tapi API map ke camelCase)
     password: '',
   });
 
   const [message, setMessage] = useState('');
 
   const validateForm = () => {
-    const { email, username, phone, password } = formData;
+    const { email, username, phone_Number, password } = formData;
 
     if (!email) return 'Email belum diisi';
     if (!/\S+@\S+\.\S+/.test(email)) return 'Format email tidak valid';
     if (!username) return 'Username belum diisi';
-    if (!phone) return 'No. HP belum diisi';
+    if (!phone_Number) return 'No. HP belum diisi';
     if (!password) return 'Password belum diisi';
     if (password.length < 6) return 'Password minimal 6 karakter';
     return '';
@@ -37,7 +37,7 @@ const Signup = () => {
   };
 
   const handleSignup = async () => {
-    const validationError = validateForm();
+  const validationError = validateForm();
     if (validationError) {
       setMessage(validationError);
       return;
@@ -45,7 +45,9 @@ const Signup = () => {
 
     setMessage('');
     try {
-      await axios.post(`${apiUrl}/api/auth/signup`, formData);
+      // ✅ ubah signup -> register
+      await axios.post(`${apiUrl}/api/auth/register`, formData);
+
       alert('Signup berhasil! Silakan login.');
       navigate('/login');
     } catch (err: unknown) {
@@ -98,9 +100,9 @@ const Signup = () => {
             <FaPhone className="input-icon" />
             <input
               type="text"
-              name="phone"
+              name="phone_Number"  // ✅ sesuai backend
               placeholder="Masukan No HP"
-              value={formData.phone}
+              value={formData.phone_Number}
               onChange={handleChange}
               required
             />
