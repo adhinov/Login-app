@@ -1,53 +1,36 @@
-// seedAdmin.js
-import 'dotenv/config';
-import pkg from 'pg';
-import bcrypt from 'bcrypt';
+import bcrypt from "bcryptjs";
+import db from "./config/db.js";
 
-const { Client } = pkg;
-
-const client = new Client({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
-});
-
-async function seedAdmin() {
+const seedAdmin = async () => {
   try {
-    console.log('🌱 Menyambungkan ke Neon DB...');
-    await client.connect();
+    const email = "admin@example.com";
+    const password = "admin123"; // password login
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    const email = process.env.ADMIN_EMAIL || 'admin@example.com';
-    const plainPassword = process.env.ADMIN_PASSWORD || 'admin123';
-    const hashedPassword = await bcrypt.hash(plainPassword, 10);
-
-    // Pastikan role 'admin' ada di tabel roles
-    const roleRes = await client.query('SELECT id FROM roles WHERE name=$1', ['admin']);
-    let roleId;
-    if (roleRes.rows.length === 0) {
-      const insertRole = await client.query('INSERT INTO roles (name) VALUES ($1) RETURNING id', ['admin']);
-      roleId = insertRole.rows[0].id;
-      console.log(`✅ Role 'admin' dibuat dengan ID ${roleId}`);
-    } else {
-      roleId = roleRes.rows[0].id;
-    }
-
-    // Insert admin jika belum ada
-    const userRes = await client.query('SELECT * FROM users WHERE email=$1', [email]);
-    if (userRes.rows.length === 0) {
-      await client.query(
-        'INSERT INTO users (email, password, role_id) VALUES ($1, $2, $3)',
-        [email, hashedPassword, roleId]
+    // cek apakah admin sudah ada
+    const result = await db.query("SELECT * FROM users WHERE email = $1", [email]);
+    if (result.rows.length > 0) {
+      console.log("⚠️ Admin sudah ada, update password & role...");
+      await db.query(
+        "UPDATE users SET password = $1, role = $2 WHERE email = $3",
+        [hashedPassword, "admin", email]
       );
-      console.log(`✅ Admin berhasil dibuat: ${email} / ${plainPassword}`);
-    } else {
-      console.log(`ℹ️ Admin dengan email ${email} sudah ada, skip insert.`);
+      console.log("✅ Admin berhasil di-update:", email);
+      process.exit();
     }
 
-  } catch (err) {
-    console.error('❌ Error saat seeding admin:', err);
-  } finally {
-    await client.end();
-    console.log('🔌 Koneksi ditutup.');
+    // insert admin baru kalau belum ada
+    await db.query(
+      "INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, $4)",
+      ["Admin", email, hashedPassword, "admin"]
+    );
+
+    console.log("✅ Admin berhasil ditambahkan:", email, " | password:", password);
+    process.exit();
+  } catch (error) {
+    console.error("❌ Error seeding admin:", error);
+    process.exit(1);
   }
-}
+};
 
 seedAdmin();

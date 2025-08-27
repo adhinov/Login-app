@@ -1,21 +1,21 @@
-import pool from "../models/db.js";
+// controllers/userController.js
+import { getAllUsers } from "../models/userModel.js";
 
-// Fungsi untuk mengambil semua data user dari database
-export const getAllUsers = async (req, res) => {
+const getUserProfile = async (req, res) => {
   try {
-    // Pastikan user adalah admin
-    if (!req.user || req.user.role_id !== 1) {
-      return res.status(403).json({ message: "Akses ditolak. Hanya admin yang bisa melihat data ini." });
+    // Cari user berdasarkan ID yang ada di token JWT (dari middleware)
+    const user = await User.findById(req.user.id).select("-password");
+
+    if (!user) {
+      return res.status(404).json({ msg: "User not found" });
     }
 
-    const allUsers = await pool.query(
-      "SELECT id, username, email, phone_number, role_id AS role, created_at FROM users"
-    );
-
-    // Mengirim data dalam format yang diharapkan oleh frontend
-    res.json({ users: allUsers.rows });
+    res.json(user);
   } catch (err) {
-    console.error("❌ ERROR di getAllUsers:", err.message);
+    console.error(err.message);
     res.status(500).send("Server Error");
   }
 };
+
+// Menggunakan named export agar bisa diimpor oleh userRoutes.js
+export { getUserProfile };

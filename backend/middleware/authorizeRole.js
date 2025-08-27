@@ -1,14 +1,18 @@
 // middleware/authorizeRole.js
-export default function authorizeRole(requiredRole) {
-  return function (req, res, next) {
-    if (!req.user) {
-      return res.status(401).json({ message: "Token tidak valid atau tidak ditemukan" });
+export const authorizeRole = (...allowedRoles) => {
+  return (req, res, next) => {
+    const userRole = req.user?.role;
+
+    if (!userRole) {
+      return res.status(403).json({ message: "Role tidak ditemukan pada token" });
     }
 
-    if (req.user.role !== requiredRole) {
-      return res.status(403).json({ message: "Akses ditolak. Role tidak sesuai" });
+    if (!allowedRoles.includes(userRole)) {
+      return res
+        .status(403)
+        .json({ message: `Akses ditolak, hanya untuk role: ${allowedRoles.join(", ")}` });
     }
 
     next();
   };
-}
+};
