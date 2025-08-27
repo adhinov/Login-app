@@ -9,23 +9,31 @@ import adminRoutes from "./routes/adminRoutes.js";
 dotenv.config();
 const app = express();
 
-// Konfigurasi CORS
+// ================== CORS CONFIG ==================
+const allowedOrigin = process.env.CORS_ORIGIN || "*";
+
 const corsOptions = {
-  origin: process.env.CORS_ORIGIN, // Mengambil domain frontend dari .env
-  optionsSuccessStatus: 200,
-  methods: ["GET", "POST", "PUT", "DELETE"], // Opsional: Tentukan metode yang diizinkan
+  origin: allowedOrigin,
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true, // kalau kirim cookie/JWT
+  optionsSuccessStatus: 200
 };
 
 app.use(cors(corsOptions));
+
+// ================== MIDDLEWARE ==================
 app.use(express.json());
 
-// Routes
+// ================== ROUTES ==================
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 
 app.get("/", (req, res) => {
-  res.send("Backend API berjalan 🚀");
+  res.send("✅ Backend API berjalan di Vercel 🚀");
 });
 
+// ================== SERVER LISTEN ==================
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
