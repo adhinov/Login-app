@@ -9,17 +9,9 @@ import adminRoutes from "./routes/adminRoutes.js";
 dotenv.config();
 const app = express();
 
-// ================== CORS CONFIG ==================
-const allowedOrigin = process.env.CORS_ORIGIN || "*";
-
-const corsOptions = {
-  origin: allowedOrigin,
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true, // kalau kirim cookie/JWT
-  optionsSuccessStatus: 200
-};
-
-app.use(cors(corsOptions));
+// ================== CORS CONFIG (Allow All - sementara) ==================
+app.use(cors());           // izinkan semua origin
+app.options("*", cors());  // handle preflight OPTIONS request
 
 // ================== MIDDLEWARE ==================
 app.use(express.json());
@@ -29,7 +21,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 
 app.get("/", (req, res) => {
-  res.send("✅ Backend API berjalan di Vercel 🚀");
+  res.send("✅ Backend API berjalan dengan CORS Allow-All 🚀");
 });
 
 // ================== SERVER LISTEN ==================
