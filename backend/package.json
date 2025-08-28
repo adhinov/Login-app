@@ -1,8 +1,6 @@
 {
   "name": "login-backend",
   "version": "1.0.0",
-  "description": "API backend for a user login application",
-  "main": "api/index.js",
   "type": "module",
   "scripts": {
     "start": "node api/index.js",
@@ -21,7 +19,5 @@
   },
   "engines": {
     "node": "18.x"
-  },
-  "author": "",
-  "license": "ISC"
+  }
 }
