@@ -1,29 +1,26 @@
-// api/auth/login.js
 import mysql from "mysql2/promise";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-// koneksi Neon / PlanetScale / MySQL
-const db = await mysql.createPool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-});
-
-// handler
 export default async function handler(req, res) {
-  // ✅ Set header CORS
-  res.setHeader("Access-Control-Allow-Origin", "https://login-app-64w3.vercel.app"); // frontend vercel kamu
-  res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  // ====== HANDLE CORS ======
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+  res.setHeader("Access-Control-Allow-Origin", "*"); // sementara allow all
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET,OPTIONS,PATCH,DELETE,POST,PUT"
+  );
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization"
+  );
 
-  // ✅ Preflight request (OPTIONS)
+  // kalau OPTIONS (preflight), langsung return 200
   if (req.method === "OPTIONS") {
     return res.status(200).end();
   }
 
-  // ✅ Hanya izinkan POST
+  // ====== HANYA IZINKAN POST LOGIN ======
   if (req.method !== "POST") {
     return res.status(405).json({ message: "Method not allowed" });
   }
@@ -35,39 +32,36 @@ export default async function handler(req, res) {
       return res.status(400).json({ message: "Email dan password wajib diisi" });
     }
 
-    // cek user di database
-    const [rows] = await db.query("SELECT * FROM users WHERE email = ?", [email]);
+    const connection = await mysql.createConnection({
+      host: process.env.DB_HOST,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME,
+    });
+
+    const [rows] = await connection.execute("SELECT * FROM users WHERE email = ?", [email]);
+    await connection.end();
 
     if (rows.length === 0) {
       return res.status(401).json({ message: "Email tidak ditemukan" });
     }
 
     const user = rows[0];
+    const isPasswordValid = await bcrypt.compare(password, user.password);
 
-    // cek password
-    const validPassword = await bcrypt.compare(password, user.password);
-    if (!validPassword) {
+    if (!isPasswordValid) {
       return res.status(401).json({ message: "Password salah" });
     }
 
-    // buat JWT
     const token = jwt.sign(
-      { id: user.id, role: user.role, email: user.email },
+      { id: user.id, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
 
-    return res.status(200).json({
-      message: "Login berhasil",
-      token,
-      user: {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-      },
-    });
+    res.status(200).json({ token, user });
   } catch (error) {
     console.error("Login error:", error);
-    return res.status(500).json({ message: "Terjadi kesalahan server" });
+    res.status(500).json({ message: "Internal server error" });
   }
 }
