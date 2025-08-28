@@ -16,7 +16,7 @@ const app = express();
 const allowedOrigins = [
   "http://localhost:5173",
   "https://login-app-64w3.vercel.app",
-  "https://login-5jch3ov3l-adhinovs-projects.vercel.app",
+  "https://login-eqlu9b9cf-adhinovs-projects.vercel.app",
   process.env.CORS_ORIGIN, // ambil dari .env juga
 ];
 
