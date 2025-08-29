@@ -5,14 +5,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Health check
+// Test route
 app.get("/api/healthz", (req, res) => {
-  res.json({ status: "ok", message: "✅ Backend Express di Vercel aktif" });
+  res.json({ status: "ok", message: "Backend running on Vercel" });
 });
 
-// Contoh route test
-app.get("/api/hello", (req, res) => {
-  res.json({ message: "Hello from Vercel Express API 🎉" });
-});
-
+// Export handler untuk Vercel (tanpa app.listen)
 export default app;
