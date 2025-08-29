@@ -1,0 +1,30 @@
+### Test Root (cek server jalan)
+GET https://<project>.vercel.app/
+Content-Type: application/json
+
+### Register user (dummy)
+POST https://<project>.vercel.app/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "123456"
+}
+
+### Login berhasil (dummy admin)
+POST https://<project>.vercel.app/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@example.com",
+  "password": "123456"
+}
+
+### Login gagal (password salah)
+POST https://<project>.vercel.app/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@example.com",
+  "password": "wrongpass"
+}
