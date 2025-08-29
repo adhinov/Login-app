@@ -1,7 +1,5 @@
-// backend/api/index.js
 import express from "express";
 import cors from "cors";
-import authRoutes from "../routes/authRoutes.js";
 
 const app = express();
 app.use(cors());
@@ -12,9 +10,9 @@ app.get("/api/healthz", (req, res) => {
   res.json({ status: "ok", message: "✅ Backend Express di Vercel aktif" });
 });
 
-// Routes
-app.use("/api/auth", authRoutes);
+// Contoh route test
+app.get("/api/hello", (req, res) => {
+  res.json({ message: "Hello from Vercel Express API 🎉" });
+});
 
-// ⚠️ Penting: Jangan pakai app.listen()
-// Vercel akan otomatis menjalankan Express handler
 export default app;
