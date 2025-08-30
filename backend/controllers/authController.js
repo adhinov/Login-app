@@ -3,51 +3,44 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import pool from "../config/db.js";
 import nodemailer from "nodemailer";
-import crypto from "crypto";
 
-// ======================== REGISTER ========================
+// ====================== REGISTER ======================
 export const register = async (req, res) => {
-  const { name, email, password, role } = req.body;
-
   try {
-    // cek email sudah ada atau belum
-    const checkUser = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
-    if (checkUser.rows.length > 0) {
-      return res.status(400).json({ message: "Email sudah terdaftar" });
+    const { name, email, password } = req.body;
+
+    // cek user sudah ada?
+    const [existing] = await pool.query("SELECT * FROM users WHERE email = ?", [email]);
+    if (existing.length > 0) {
+      return res.status(400).json({ message: "User already exists" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    const role = "user"; // default user
 
-    // insert user baru
-    const newUser = await pool.query(
-      "INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, $4) RETURNING id, name, email, role",
-      [name, email, hashedPassword, role || "user"]
+    const [result] = await pool.query(
+      "INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)",
+      [name, email, hashedPassword, role]
     );
 
-    res.status(201).json({ user: newUser.rows[0], message: "Registrasi berhasil" });
-  } catch (err) {
-    console.error("Error di register:", err);
-    res.status(500).json({ message: "Registrasi gagal" });
+    res.status(201).json({ message: "User registered successfully", userId: result.insertId });
+  } catch (error) {
+    console.error("Register error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
-// ======================== LOGIN ========================
+// ====================== LOGIN ======================
 export const login = async (req, res) => {
-  const { email, password } = req.body;
-
   try {
-    const result = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
+    const { email, password } = req.body;
 
-    if (result.rows.length === 0) {
-      return res.status(401).json({ message: "Email tidak ditemukan" });
-    }
+    const [rows] = await pool.query("SELECT * FROM users WHERE email = ?", [email]);
+    if (rows.length === 0) return res.status(400).json({ message: "User not found" });
 
-    const user = result.rows[0];
-    const validPassword = await bcrypt.compare(password, user.password);
-
-    if (!validPassword) {
-      return res.status(401).json({ message: "Password salah" });
-    }
+    const user = rows[0];
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
 
     const token = jwt.sign(
       { id: user.id, role: user.role },
@@ -57,33 +50,37 @@ export const login = async (req, res) => {
 
     res.json({
       token,
-      user: { id: user.id, name: user.name, email: user.email, role: user.role },
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+      }
     });
-  } catch (err) {
-    console.error("Error di login:", err);
-    res.status(500).json({ message: "Login gagal" });
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
-// ======================== GOOGLE LOGIN ========================
+// ====================== GOOGLE LOGIN ======================
 export const googleLogin = async (req, res) => {
-  const { email, name } = req.body;
-
   try {
-    let user = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
+    const { email, name } = req.body;
 
-    // jika user belum ada → otomatis buat baru
-    if (user.rows.length === 0) {
-      user = await pool.query(
-        "INSERT INTO users (name, email, role) VALUES ($1, $2, $3) RETURNING *",
+    let [rows] = await pool.query("SELECT * FROM users WHERE email = ?", [email]);
+
+    if (rows.length === 0) {
+      // insert user baru tanpa password
+      const [result] = await pool.query(
+        "INSERT INTO users (name, email, role) VALUES (?, ?, ?)",
         [name, email, "user"]
       );
+      rows = [{ id: result.insertId, email, name, role: "user" }];
     }
 
-    const currentUser = user.rows[0];
-
+    const user = rows[0];
     const token = jwt.sign(
-      { id: currentUser.id, role: currentUser.role },
+      { id: user.id, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
@@ -91,110 +88,87 @@ export const googleLogin = async (req, res) => {
     res.json({
       token,
       user: {
-        id: currentUser.id,
-        name: currentUser.name,
-        email: currentUser.email,
-        role: currentUser.role,
-      },
+        id: user.id,
+        email: user.email,
+        role: user.role,
+      }
     });
-  } catch (err) {
-    console.error("Error di googleLogin:", err);
-    res.status(500).json({ message: "Google login gagal" });
+  } catch (error) {
+    console.error("Google login error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
-// ======================== SET PASSWORD (untuk Google user) ========================
+// ====================== SET PASSWORD (untuk user google) ======================
 export const setPassword = async (req, res) => {
-  const { email, password } = req.body;
-
   try {
+    const { email, password } = req.body;
+
     const hashedPassword = await bcrypt.hash(password, 10);
+    await pool.query("UPDATE users SET password = ? WHERE email = ?", [hashedPassword, email]);
 
-    const result = await pool.query(
-      "UPDATE users SET password = $1 WHERE email = $2 RETURNING id, name, email, role",
-      [hashedPassword, email]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: "User tidak ditemukan" });
-    }
-
-    res.json({ user: result.rows[0], message: "Password berhasil diset" });
-  } catch (err) {
-    console.error("Error di setPassword:", err);
-    res.status(500).json({ message: "Gagal set password" });
+    res.json({ message: "Password set successfully, now you can login manually" });
+  } catch (error) {
+    console.error("Set password error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
-// ======================== FORGOT PASSWORD ========================
+// ====================== FORGOT PASSWORD ======================
 export const forgotPassword = async (req, res) => {
-  const { email } = req.body;
-
   try {
-    const result = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: "Email tidak ditemukan" });
-    }
+    const { email } = req.body;
 
-    const resetToken = crypto.randomBytes(32).toString("hex");
-    const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex");
+    const [rows] = await pool.query("SELECT * FROM users WHERE email = ?", [email]);
+    if (rows.length === 0) return res.status(400).json({ message: "User not found" });
 
-    // simpan token + expired ke DB
-    await pool.query(
-      "UPDATE users SET reset_token = $1, reset_token_expiry = NOW() + interval '1 hour' WHERE email = $2",
-      [hashedToken, email]
+    const user = rows[0];
+    const resetToken = jwt.sign(
+      { id: user.id },
+      process.env.JWT_SECRET,
+      { expiresIn: "15m" }
     );
 
-    // kirim email pakai nodemailer
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+
+    // transporter nodemailer
     const transporter = nodemailer.createTransport({
-      service: "gmail", // bisa diganti sesuai provider
+      service: "gmail",
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
     });
 
-    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}&email=${email}`;
-
     await transporter.sendMail({
+      from: `"Login App" <${process.env.EMAIL_USER}>`,
       to: email,
-      subject: "Reset Password",
-      html: `<p>Klik link berikut untuk reset password:</p><a href="${resetUrl}">${resetUrl}</a>`,
+      subject: "Reset Your Password",
+      html: `<p>Click the link below to reset your password:</p>
+             <a href="${resetLink}">${resetLink}</a>`,
     });
 
-    res.json({ message: "Email reset password sudah dikirim" });
-  } catch (err) {
-    console.error("Error di forgotPassword:", err);
-    res.status(500).json({ message: "Gagal mengirim reset password" });
+    res.json({ message: "Reset link sent to email" });
+  } catch (error) {
+    console.error("Forgot password error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
-// ======================== RESET PASSWORD ========================
+// ====================== RESET PASSWORD ======================
 export const resetPassword = async (req, res) => {
-  const { email, token, newPassword } = req.body;
-
   try {
-    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+    const { token } = req.params;
+    const { password } = req.body;
 
-    const result = await pool.query(
-      "SELECT * FROM users WHERE email = $1 AND reset_token = $2 AND reset_token_expiry > NOW()",
-      [email, hashedToken]
-    );
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    if (result.rows.length === 0) {
-      return res.status(400).json({ message: "Token tidak valid atau sudah kadaluarsa" });
-    }
+    await pool.query("UPDATE users SET password = ? WHERE id = ?", [hashedPassword, decoded.id]);
 
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-    await pool.query(
-      "UPDATE users SET password = $1, reset_token = NULL, reset_token_expiry = NULL WHERE email = $2",
-      [hashedPassword, email]
-    );
-
-    res.json({ message: "Password berhasil direset" });
-  } catch (err) {
-    console.error("Error di resetPassword:", err);
-    res.status(500).json({ message: "Gagal reset password" });
+    res.json({ message: "Password reset successful" });
+  } catch (error) {
+    console.error("Reset password error:", error);
+    res.status(500).json({ message: "Invalid or expired token" });
   }
 };

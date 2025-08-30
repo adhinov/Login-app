@@ -1,12 +1,11 @@
-// authRoutes.js
 import express from "express";
-import { 
-  register, 
-  login, 
-  // googleLogin,   // <-- Hapus atau aktifkan kalau sudah ada di authController.js
-  setPassword, 
-  forgotPassword, 
-  resetPassword 
+import {
+  register,
+  login,
+  googleLogin,
+  setPassword,
+  forgotPassword,
+  resetPassword,
 } from "../controllers/authController.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 import { isAdmin } from "../middleware/isAdmin.js";
@@ -16,39 +15,35 @@ const router = express.Router();
 // ==================== AUTH ROUTES ====================
 
 // Register user baru
+// POST /api/auth/register
 router.post("/register", register);
 
 // Login user (email + password)
+// POST /api/auth/login
 router.post("/login", login);
 
-// Login via Google (aktifkan jika sudah ada di authController.js)
-// router.post("/google-login", googleLogin);
+// Login via Google
+// POST /api/auth/google-login
+router.post("/google-login", googleLogin);
 
-// Setel password untuk user yang login via Google
+// Set password setelah login Google
+// POST /api/auth/set-password
 router.post("/set-password", verifyToken, setPassword);
 
-// Lupa password - kirim email reset
+// Lupa password (kirim link reset via email)
+// POST /api/auth/forgot-password
 router.post("/forgot-password", forgotPassword);
 
-// Reset password dengan token
+// Reset password (dari link email)
+// POST /api/auth/reset-password
 router.post("/reset-password", resetPassword);
 
-// ==================== TESTING PROTECTED ROUTES ====================
+// ==================== ADMIN ROUTES ====================
 
-// Endpoint untuk cek token
-router.get("/profile", verifyToken, (req, res) => {
-  res.json({
-    message: "Profil user berhasil diambil",
-    user: req.user,
-  });
-});
-
-// Endpoint khusus admin
+// Contoh: hanya admin yang bisa mengakses data semua user
+// GET /api/auth/admin
 router.get("/admin", verifyToken, isAdmin, (req, res) => {
-  res.json({
-    message: "Selamat datang di halaman admin",
-    user: req.user,
-  });
+  res.json({ message: "Selamat datang, Admin!", user: req.user });
 });
 
 export default router;
