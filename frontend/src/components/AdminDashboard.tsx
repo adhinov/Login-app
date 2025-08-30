@@ -21,6 +21,7 @@ const AdminDashboard: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
+
       const token = localStorage.getItem("token");
       if (!token) {
         navigate("/login");
@@ -33,10 +34,19 @@ const AdminDashboard: React.FC = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
+
       setUsers(res.data);
     } catch (err: any) {
       console.error("Gagal mengambil data user:", err);
-      setError("Gagal memuat data pengguna. Coba lagi nanti.");
+
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        // token invalid / bukan admin → paksa logout
+        localStorage.removeItem("token");
+        setError("Akses ditolak. Silakan login ulang.");
+        navigate("/login");
+      } else {
+        setError("Gagal memuat data pengguna. Coba lagi nanti.");
+      }
     } finally {
       setLoading(false);
     }
