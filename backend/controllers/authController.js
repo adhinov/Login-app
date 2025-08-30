@@ -3,6 +3,8 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import pool from "../config/db.js";
 import nodemailer from "nodemailer";
+import dotenv from "dotenv";
+dotenv.config();
 
 // ====================== REGISTER ======================
 export const register = async (req, res) => {
@@ -16,7 +18,7 @@ export const register = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const role = "user"; // default user
+    const role = "user"; // default role
 
     const [result] = await pool.query(
       "INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)",
@@ -35,13 +37,17 @@ export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    // ambil user berdasarkan email
     const [rows] = await pool.query("SELECT * FROM users WHERE email = ?", [email]);
-    if (rows.length === 0) return res.status(400).json({ message: "User not found" });
+    if (rows.length === 0) return res.status(404).json({ message: "User not found" });
 
     const user = rows[0];
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
 
+    // cek password
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(401).json({ message: "Invalid credentials" });
+
+    // buat JWT
     const token = jwt.sign(
       { id: user.id, role: user.role },
       process.env.JWT_SECRET,
@@ -52,6 +58,7 @@ export const login = async (req, res) => {
       token,
       user: {
         id: user.id,
+        name: user.name,
         email: user.email,
         role: user.role,
       }
@@ -89,6 +96,7 @@ export const googleLogin = async (req, res) => {
       token,
       user: {
         id: user.id,
+        name: user.name,
         email: user.email,
         role: user.role,
       }
@@ -99,12 +107,12 @@ export const googleLogin = async (req, res) => {
   }
 };
 
-// ====================== SET PASSWORD (untuk user google) ======================
+// ====================== SET PASSWORD ======================
 export const setPassword = async (req, res) => {
   try {
     const { email, password } = req.body;
-
     const hashedPassword = await bcrypt.hash(password, 10);
+
     await pool.query("UPDATE users SET password = ? WHERE email = ?", [hashedPassword, email]);
 
     res.json({ message: "Password set successfully, now you can login manually" });
@@ -120,7 +128,7 @@ export const forgotPassword = async (req, res) => {
     const { email } = req.body;
 
     const [rows] = await pool.query("SELECT * FROM users WHERE email = ?", [email]);
-    if (rows.length === 0) return res.status(400).json({ message: "User not found" });
+    if (rows.length === 0) return res.status(404).json({ message: "User not found" });
 
     const user = rows[0];
     const resetToken = jwt.sign(
@@ -131,7 +139,6 @@ export const forgotPassword = async (req, res) => {
 
     const resetLink = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
 
-    // transporter nodemailer
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
