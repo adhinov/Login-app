@@ -11,20 +11,20 @@ export const register = async (req, res) => {
   try {
     const { username, email, password } = req.body;
 
-    const result = await pool.query(
-      "SELECT id FROM users WHERE email = $1",
-      [email]
-    );
+    // cek user sudah ada?
+    const result = await pool.query("SELECT id FROM users WHERE email = $1", [email]);
     if (result.rows.length > 0) {
       return res.status(400).json({ message: "User already exists" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const role = "user";
+
+    // default role_id = 2 (user)
+    const defaultRoleId = 2;
 
     await pool.query(
-      "INSERT INTO users (username, email, password, role) VALUES ($1, $2, $3, $4)",
-      [username, email, hashedPassword, role]
+      "INSERT INTO users (username, email, password, role_id) VALUES ($1, $2, $3, $4)",
+      [username, email, hashedPassword, defaultRoleId]
     );
 
     res.status(201).json({ message: "User registered successfully" });
@@ -39,10 +39,15 @@ export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    // ambil user + role join ke tabel roles
     const result = await pool.query(
-      "SELECT id, username, email, role, password FROM users WHERE email = $1",
+      `SELECT u.id, u.username, u.email, u.password, r.name AS role
+       FROM users u
+       JOIN roles r ON u.role_id = r.id
+       WHERE u.email = $1`,
       [email]
     );
+
     if (result.rows.length === 0) return res.status(404).json({ message: "User not found" });
 
     const user = result.rows[0];
@@ -73,17 +78,26 @@ export const googleLogin = async (req, res) => {
     const { email, username } = req.body;
 
     let result = await pool.query(
-      "SELECT id, username, email, role FROM users WHERE email = $1",
+      `SELECT u.id, u.username, u.email, r.name AS role
+       FROM users u
+       JOIN roles r ON u.role_id = r.id
+       WHERE u.email = $1`,
       [email]
     );
-    let user;
 
+    let user;
     if (result.rows.length === 0) {
+      // default role_id = 2 (user)
+      const defaultRoleId = 2;
       const insert = await pool.query(
-        "INSERT INTO users (username, email, role) VALUES ($1, $2, $3) RETURNING id, username, email, role",
-        [username, email, "user"]
+        "INSERT INTO users (username, email, role_id) VALUES ($1, $2, $3) RETURNING id, username, email",
+        [username, email, defaultRoleId]
       );
       user = insert.rows[0];
+
+      // ambil role dari tabel roles
+      const roleRes = await pool.query("SELECT name AS role FROM roles WHERE id = $1", [defaultRoleId]);
+      user.role = roleRes.rows[0].role;
     } else {
       user = result.rows[0];
     }
@@ -114,11 +128,14 @@ export const setPassword = async (req, res) => {
     await pool.query("UPDATE users SET password = $1 WHERE email = $2", [hashedPassword, email]);
 
     const result = await pool.query(
-      "SELECT id, username, email, role FROM users WHERE email = $1",
+      `SELECT u.id, u.username, u.email, r.name AS role
+       FROM users u
+       JOIN roles r ON u.role_id = r.id
+       WHERE u.email = $1`,
       [email]
     );
-    const user = result.rows[0];
 
+    const user = result.rows[0];
     const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
     res.json({
@@ -151,10 +168,7 @@ export const forgotPassword = async (req, res) => {
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      }
+      auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
     });
 
     await transporter.sendMail({
@@ -183,11 +197,14 @@ export const resetPassword = async (req, res) => {
     await pool.query("UPDATE users SET password = $1 WHERE id = $2", [hashedPassword, decoded.id]);
 
     const result = await pool.query(
-      "SELECT id, username, email, role FROM users WHERE id = $1",
+      `SELECT u.id, u.username, u.email, r.name AS role
+       FROM users u
+       JOIN roles r ON u.role_id = r.id
+       WHERE u.id = $1`,
       [decoded.id]
     );
-    const user = result.rows[0];
 
+    const user = result.rows[0];
     const newToken = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
     res.json({
