@@ -1,12 +1,11 @@
+// backend/server.js
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import authRoutes from "./routes/authRoutes.js"; // pastikan file ini ada
-import db from "./config/db.js"; // koneksi database
+import authRoutes from "./routes/authRoutes.js";
+import db from "./config/db.js";
 
-// Load environment variables
 dotenv.config();
-
 const app = express();
 
 // Middleware
@@ -18,10 +17,10 @@ app.use(
 );
 app.use(express.json());
 
-// Health check route (Railway will use this to check container)
+// Health check
 app.get("/api/healthz", async (req, res) => {
   try {
-    await db.query("SELECT 1"); // test koneksi database
+    await db.query("SELECT NOW()"); // cek koneksi PostgreSQL
     res.json({ status: "ok", message: "Backend API is running ✅" });
   } catch (error) {
     console.error("Healthz error:", error.message);
@@ -32,7 +31,7 @@ app.get("/api/healthz", async (req, res) => {
 // Routes
 app.use("/api/auth", authRoutes);
 
-// Default 404 handler
+// Default 404
 app.use((req, res) => {
   res.status(404).json({ message: "Route not found" });
 });
