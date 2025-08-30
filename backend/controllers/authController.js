@@ -12,20 +12,23 @@ export const register = async (req, res) => {
     const { name, email, password } = req.body;
 
     // cek user sudah ada?
-    const [existing] = await pool.query("SELECT * FROM users WHERE email = ?", [email]);
-    if (existing.length > 0) {
+    const result = await pool.query(
+      "SELECT * FROM users WHERE email = $1",
+      [email]
+    );
+    if (result.rows.length > 0) {
       return res.status(400).json({ message: "User already exists" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const role = "user"; // default role
+    const role = "user";
 
-    const [result] = await pool.query(
-      "INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)",
+    await pool.query(
+      "INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, $4)",
       [name, email, hashedPassword, role]
     );
 
-    res.status(201).json({ message: "User registered successfully", userId: result.insertId });
+    res.status(201).json({ message: "User registered successfully" });
   } catch (error) {
     console.error("Register error:", error);
     res.status(500).json({ message: "Server error" });
@@ -37,17 +40,18 @@ export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // ambil user berdasarkan email
-    const [rows] = await pool.query("SELECT * FROM users WHERE email = ?", [email]);
-    if (rows.length === 0) return res.status(404).json({ message: "User not found" });
+    const result = await pool.query(
+      "SELECT * FROM users WHERE email = $1",
+      [email]
+    );
 
-    const user = rows[0];
+    if (result.rows.length === 0) return res.status(404).json({ message: "User not found" });
 
-    // cek password
+    const user = result.rows[0];
+
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(401).json({ message: "Invalid credentials" });
 
-    // buat JWT
     const token = jwt.sign(
       { id: user.id, role: user.role },
       process.env.JWT_SECRET,
@@ -74,18 +78,20 @@ export const googleLogin = async (req, res) => {
   try {
     const { email, name } = req.body;
 
-    let [rows] = await pool.query("SELECT * FROM users WHERE email = ?", [email]);
+    let result = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
+    let user;
 
-    if (rows.length === 0) {
+    if (result.rows.length === 0) {
       // insert user baru tanpa password
-      const [result] = await pool.query(
-        "INSERT INTO users (name, email, role) VALUES (?, ?, ?)",
+      const insert = await pool.query(
+        "INSERT INTO users (name, email, role) VALUES ($1, $2, $3) RETURNING *",
         [name, email, "user"]
       );
-      rows = [{ id: result.insertId, email, name, role: "user" }];
+      user = insert.rows[0];
+    } else {
+      user = result.rows[0];
     }
 
-    const user = rows[0];
     const token = jwt.sign(
       { id: user.id, role: user.role },
       process.env.JWT_SECRET,
@@ -113,7 +119,10 @@ export const setPassword = async (req, res) => {
     const { email, password } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    await pool.query("UPDATE users SET password = ? WHERE email = ?", [hashedPassword, email]);
+    await pool.query(
+      "UPDATE users SET password = $1 WHERE email = $2",
+      [hashedPassword, email]
+    );
 
     res.json({ message: "Password set successfully, now you can login manually" });
   } catch (error) {
@@ -127,10 +136,14 @@ export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
 
-    const [rows] = await pool.query("SELECT * FROM users WHERE email = ?", [email]);
-    if (rows.length === 0) return res.status(404).json({ message: "User not found" });
+    const result = await pool.query(
+      "SELECT * FROM users WHERE email = $1",
+      [email]
+    );
 
-    const user = rows[0];
+    if (result.rows.length === 0) return res.status(404).json({ message: "User not found" });
+
+    const user = result.rows[0];
     const resetToken = jwt.sign(
       { id: user.id },
       process.env.JWT_SECRET,
@@ -171,7 +184,10 @@ export const resetPassword = async (req, res) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    await pool.query("UPDATE users SET password = ? WHERE id = ?", [hashedPassword, decoded.id]);
+    await pool.query(
+      "UPDATE users SET password = $1 WHERE id = $2",
+      [hashedPassword, decoded.id]
+    );
 
     res.json({ message: "Password reset successful" });
   } catch (error) {
