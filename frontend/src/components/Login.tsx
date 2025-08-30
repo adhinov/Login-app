@@ -5,7 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import axios, { type AxiosResponse } from "axios";
 import "./FormStyles.css";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API_URL = import.meta.env.VITE_API_URL;
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -14,7 +14,6 @@ const Login = () => {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-
 
   // ================= LOGIN BIASA =================
   const handleLogin = async () => {
@@ -33,27 +32,21 @@ const Login = () => {
         localStorage.setItem("token", token);
         localStorage.setItem("user", JSON.stringify(user));
 
-        // ✅ Normalisasi role agar seragam
-        let userRole = "user";
-        if (user.role) {
-          userRole = user.role.toLowerCase();
-        } else if (user.role_id) {
-          userRole = user.role_id === 1 ? "admin" : "user";
-        }
+        // ✅ Normalisasi role
+        const userRole =
+          user.role?.toLowerCase() || (user.role_id === 1 ? "admin" : "user");
 
-        // ✅ Simpan role secara terpisah agar dibaca ProtectedRoute
         localStorage.setItem("role", userRole);
 
-        console.log("✅ Login berhasil:", user);
-
         if (userRole === "admin") {
-          navigate("/adminDashboard");
+          navigate("/adminDashboard", { replace: true });
         } else {
           navigate("/welcome", {
             state: {
               email: user.email,
               username: user.username || "User",
             },
+            replace: true,
           });
         }
       } else {
@@ -61,7 +54,7 @@ const Login = () => {
       }
     } catch (err: any) {
       if (axios.isAxiosError(err)) {
-        setMessage(err.response?.data?.message || err.message);
+        setMessage(err.response?.data?.message || "Email atau password salah.");
       } else {
         setMessage("Terjadi kesalahan tak terduga. Silakan coba lagi.");
       }
@@ -75,60 +68,63 @@ const Login = () => {
       <div className="form-box">
         <h2 className="form-title green">Login</h2>
 
-        {/* EMAIL */}
-        <div className="form-group">
-          <label>Email</label>
-          <div className="input-wrapper">
-            <FaEnvelope className="input-icon" />
-            <input
-              type="email"
-              placeholder="Masukan Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-        </div>
-
-        {/* PASSWORD */}
-        <div className="form-group">
-          <label>Password</label>
-          <div className="input-wrapper">
-            <FaLock className="input-icon" />
-            <input
-              type={showPassword ? "text" : "password"}
-              placeholder="Masukan Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-            <span
-              className="toggle-password"
-              onClick={() => setShowPassword(!showPassword)}
-            >
-              {showPassword ? <FaEyeSlash /> : <FaEye />}
-            </span>
-          </div>
-        </div>
-
-        {/* LUPA PASSWORD */}
-        <div className="form-footer right">
-          <Link to="/forgot-password" className="link-blue">
-            Lupa Password?
-          </Link>
-        </div>
-
-        {/* BUTTON LOGIN */}
-        <button
-          className="form-button black"
-          onClick={handleLogin}
-          disabled={loading}
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleLogin();
+          }}
         >
-          {loading ? "Memproses..." : "Masuk"}
-        </button>
+          {/* EMAIL */}
+          <div className="form-group">
+            <label>Email</label>
+            <div className="input-wrapper">
+              <FaEnvelope className="input-icon" />
+              <input
+                type="email"
+                placeholder="Masukan Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+
+          {/* PASSWORD */}
+          <div className="form-group">
+            <label>Password</label>
+            <div className="input-wrapper">
+              <FaLock className="input-icon" />
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="Masukan Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <span
+                className="toggle-password"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </span>
+            </div>
+          </div>
+
+          {/* LUPA PASSWORD */}
+          <div className="form-footer right">
+            <Link to="/forgot-password" className="link-blue">
+              Lupa Password?
+            </Link>
+          </div>
+
+          {/* BUTTON LOGIN */}
+          <button className="form-button black" type="submit" disabled={loading}>
+            {loading ? "Memproses..." : "Masuk"}
+          </button>
+        </form>
 
         {/* PESAN ERROR */}
-        <p className="error-message">{message && message}</p>
+        {message && <p className="error-message">{message}</p>}
 
         <div className="form-separator">============</div>
 
