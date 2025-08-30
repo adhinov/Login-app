@@ -13,10 +13,14 @@ interface User {
 
 const AdminDashboard: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const fetchUsers = async () => {
     try {
+      setLoading(true);
+      setError(null);
       const token = localStorage.getItem("token");
       if (!token) {
         navigate("/login");
@@ -30,8 +34,11 @@ const AdminDashboard: React.FC = () => {
         }
       );
       setUsers(res.data);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Gagal mengambil data user:", err);
+      setError("Gagal memuat data pengguna. Coba lagi nanti.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -40,8 +47,10 @@ const AdminDashboard: React.FC = () => {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    navigate("/login");
+    if (window.confirm("Yakin ingin logout?")) {
+      localStorage.removeItem("token");
+      navigate("/login");
+    }
   };
 
   const thStyle: React.CSSProperties = {
@@ -80,12 +89,16 @@ const AdminDashboard: React.FC = () => {
       <h1 style={{ textAlign: "center", marginBottom: 8 }}>Admin Dashboard</h1>
       <h2 style={{ textAlign: "center", marginBottom: 18 }}>Daftar Pengguna</h2>
 
+      {/* Info Loading & Error */}
+      {loading && <p style={{ textAlign: "center" }}>⏳ Memuat data...</p>}
+      {error && <p style={{ textAlign: "center", color: "red" }}>{error}</p>}
+
       {/* Tabel */}
       <div style={{ display: "flex", justifyContent: "center" }}>
         <table
           style={{
             borderCollapse: "collapse",
-            width: "80%",
+            width: "100%",
             maxWidth: 980,
             background: "#fff",
             boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
@@ -116,25 +129,37 @@ const AdminDashboard: React.FC = () => {
                 <td style={tdStyle}>{u.phone_number || "-"}</td>
               </tr>
             ))}
+            {users.length === 0 && !loading && (
+              <tr>
+                <td colSpan={6} style={{ textAlign: "center", padding: "12px" }}>
+                  Tidak ada data pengguna.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
+
+      {/* Jumlah user */}
+      <p style={{ textAlign: "center", marginTop: 10 }}>
+        Total Pengguna: <b>{users.length}</b>
+      </p>
 
       {/* Tombol bawah kanan */}
       <div
         style={{
           display: "flex",
           justifyContent: "flex-end",
-          width: "80%",
+          width: "100%",
           maxWidth: 980,
           margin: "12px auto 0 auto",
           gap: 10,
         }}
       >
-        <button onClick={fetchUsers} style={buttonStyle}>
-          Refresh
+        <button onClick={fetchUsers} style={buttonStyle} disabled={loading}>
+          {loading ? "Refreshing..." : "Refresh"}
         </button>
-        <button onClick={handleLogout} style={buttonStyle}>
+        <button onClick={handleLogout} style={{ ...buttonStyle, background: "#dc3545" }}>
           Logout
         </button>
       </div>
