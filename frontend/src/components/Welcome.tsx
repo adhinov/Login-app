@@ -10,8 +10,8 @@ const Welcome: React.FC = () => {
   const email = location.state?.email || "";
 
   const handleLogout = () => {
+    localStorage.removeItem("firebaseToken");
     navigate("/");
-    localStorage.removeItem('firebaseToken');
   };
 
   return (
@@ -27,4 +27,3 @@ const Welcome: React.FC = () => {
 };
 
 export default Welcome;
-
