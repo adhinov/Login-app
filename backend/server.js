@@ -4,6 +4,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js"; // ✅ tambahkan ini
 import pool from "./config/db.js";
 
 dotenv.config();
@@ -36,6 +37,7 @@ app.get("/", (req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/admin", adminRoutes); // ✅ pasang route admin di prefix /api/admin
 
 // ==================== TEST DB CONNECTION ====================
 app.get("/api/db-check", async (req, res) => {
