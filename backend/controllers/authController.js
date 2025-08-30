@@ -9,7 +9,7 @@ dotenv.config();
 // ====================== REGISTER ======================
 export const register = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { username, email, password } = req.body;
 
     const result = await pool.query(
       "SELECT id FROM users WHERE email = $1",
@@ -23,8 +23,8 @@ export const register = async (req, res) => {
     const role = "user";
 
     await pool.query(
-      "INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, $4)",
-      [name, email, hashedPassword, role]
+      "INSERT INTO users (username, email, password, role) VALUES ($1, $2, $3, $4)",
+      [username, email, hashedPassword, role]
     );
 
     res.status(201).json({ message: "User registered successfully" });
@@ -39,12 +39,10 @@ export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Ambil role juga
     const result = await pool.query(
-      "SELECT id, name, email, role, password FROM users WHERE email = $1",
+      "SELECT id, username, email, role, password FROM users WHERE email = $1",
       [email]
     );
-
     if (result.rows.length === 0) return res.status(404).json({ message: "User not found" });
 
     const user = result.rows[0];
@@ -58,9 +56,9 @@ export const login = async (req, res) => {
       token,
       user: {
         id: user.id,
-        name: user.name,
+        username: user.username,
         email: user.email,
-        role: user.role // ✅ Pastikan role dikirim
+        role: user.role
       }
     });
   } catch (error) {
@@ -72,15 +70,18 @@ export const login = async (req, res) => {
 // ====================== GOOGLE LOGIN ======================
 export const googleLogin = async (req, res) => {
   try {
-    const { email, name } = req.body;
+    const { email, username } = req.body;
 
-    let result = await pool.query("SELECT id, name, email, role FROM users WHERE email = $1", [email]);
+    let result = await pool.query(
+      "SELECT id, username, email, role FROM users WHERE email = $1",
+      [email]
+    );
     let user;
 
     if (result.rows.length === 0) {
       const insert = await pool.query(
-        "INSERT INTO users (name, email, role) VALUES ($1, $2, $3) RETURNING id, name, email, role",
-        [name, email, "user"]
+        "INSERT INTO users (username, email, role) VALUES ($1, $2, $3) RETURNING id, username, email, role",
+        [username, email, "user"]
       );
       user = insert.rows[0];
     } else {
@@ -93,9 +94,9 @@ export const googleLogin = async (req, res) => {
       token,
       user: {
         id: user.id,
-        name: user.name,
+        username: user.username,
         email: user.email,
-        role: user.role // ✅ Pastikan role dikirim
+        role: user.role
       }
     });
   } catch (error) {
@@ -112,7 +113,10 @@ export const setPassword = async (req, res) => {
 
     await pool.query("UPDATE users SET password = $1 WHERE email = $2", [hashedPassword, email]);
 
-    const result = await pool.query("SELECT id, name, email, role FROM users WHERE email = $1", [email]);
+    const result = await pool.query(
+      "SELECT id, username, email, role FROM users WHERE email = $1",
+      [email]
+    );
     const user = result.rows[0];
 
     const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
@@ -122,7 +126,7 @@ export const setPassword = async (req, res) => {
       token,
       user: {
         id: user.id,
-        name: user.name,
+        username: user.username,
         email: user.email,
         role: user.role
       }
@@ -138,7 +142,7 @@ export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
 
-    const result = await pool.query("SELECT id, name, email FROM users WHERE email = $1", [email]);
+    const result = await pool.query("SELECT id, username, email FROM users WHERE email = $1", [email]);
     if (result.rows.length === 0) return res.status(404).json({ message: "User not found" });
 
     const user = result.rows[0];
@@ -178,7 +182,10 @@ export const resetPassword = async (req, res) => {
 
     await pool.query("UPDATE users SET password = $1 WHERE id = $2", [hashedPassword, decoded.id]);
 
-    const result = await pool.query("SELECT id, name, email, role FROM users WHERE id = $1", [decoded.id]);
+    const result = await pool.query(
+      "SELECT id, username, email, role FROM users WHERE id = $1",
+      [decoded.id]
+    );
     const user = result.rows[0];
 
     const newToken = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
@@ -188,7 +195,7 @@ export const resetPassword = async (req, res) => {
       token: newToken,
       user: {
         id: user.id,
-        name: user.name,
+        username: user.username,
         email: user.email,
         role: user.role
       }
