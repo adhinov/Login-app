@@ -11,8 +11,14 @@ export const register = async (req, res) => {
   try {
     const { username, email, password } = req.body;
 
+    // ✅ fallback supaya aman jika frontend kirim phone_number atau phone_Number
+    const phone_number = req.body.phone_number || req.body.phone_Number || null;
+
     // cek user sudah ada?
-    const result = await pool.query("SELECT id FROM users WHERE email = $1", [email]);
+    const result = await pool.query(
+      "SELECT id FROM users WHERE email = $1",
+      [email]
+    );
     if (result.rows.length > 0) {
       return res.status(400).json({ message: "User already exists" });
     }
@@ -23,8 +29,8 @@ export const register = async (req, res) => {
     const defaultRoleId = 2;
 
     await pool.query(
-      "INSERT INTO users (username, email, password, role_id) VALUES ($1, $2, $3, $4)",
-      [username, email, hashedPassword, defaultRoleId]
+      "INSERT INTO users (username, email, password, phone_number, role_id) VALUES ($1, $2, $3, $4, $5)",
+      [username, email, hashedPassword, phone_number, defaultRoleId]
     );
 
     res.status(201).json({ message: "User registered successfully" });
