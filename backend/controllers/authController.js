@@ -170,20 +170,22 @@ export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
 
-    // ✅ Gunakan $1 untuk Postgres
+    // ✅ Query PostgreSQL
     const { rows } = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
 
     if (rows.length === 0) {
       return res.status(404).json({ message: "Email tidak ditemukan" });
     }
 
-    if (!process.env.FRONTEND_URL) {
-      console.error("❌ FRONTEND_URL not defined in environment variables");
+    if (!process.env.CORS_ORIGIN) {
+      console.error("❌ CORS_ORIGIN not defined in environment variables");
       return res.status(500).json({ message: "Konfigurasi server tidak lengkap" });
     }
 
     const token = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: "1h" });
-    const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
+
+    // 🔗 pakai CORS_ORIGIN sebagai base URL frontend
+    const resetLink = `${process.env.CORS_ORIGIN}/reset-password?token=${token}`;
     console.log("🔗 Generated reset link:", resetLink);
 
     await resend.emails.send({
@@ -203,6 +205,7 @@ export const forgotPassword = async (req, res) => {
     res.status(500).json({ message: "Terjadi kesalahan server" });
   }
 };
+
 
 // ==================== RESET PASSWORD ====================
 export const resetPassword = async (req, res) => {
