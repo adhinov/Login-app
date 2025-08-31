@@ -165,42 +165,40 @@ export const setPassword = async (req, res) => {
   }
 };
 
-// ==================== LUPA PASSWORD ====================
 export const forgotPassword = async (req, res) => {
-  const { email } = req.body;
-
   try {
-    // cek user berdasarkan email
-    const result = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
-    if (result.rows.length === 0) {
+    const { email } = req.body;
+    const [rows] = await pool.query("SELECT * FROM users WHERE email = ?", [email]);
+
+    if (rows.length === 0) {
       return res.status(404).json({ message: "Email tidak ditemukan" });
     }
 
-    // generate token & expiry
+    // ===== CEK FRONTEND_URL =====
+    if (!process.env.FRONTEND_URL) {
+      console.error("❌ FRONTEND_URL not defined in environment variables");
+      return res.status(500).json({ message: "Konfigurasi server tidak lengkap" });
+    }
+
     const token = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: "1h" });
-    const expiry = new Date(Date.now() + 3600000); // 1 jam ke depan
 
-    // simpan ke DB
-    await pool.query(
-      "UPDATE users SET reset_token = $1, reset_token_expires = $2 WHERE email = $3",
-      [token, expiry, email]
-    );
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
+    console.log("🔗 Generated reset link:", resetLink); // Debug log ke Railway
 
-    // kirim email via Resend
     await resend.emails.send({
-      from: process.env.EMAIL_FROM,
+      from: "onboarding@resend.dev",
       to: email,
       subject: "Reset Password - Login App",
       html: `
         <p>Kami menerima permintaan reset password untuk akun Anda.</p>
         <p>Klik link berikut untuk reset password (berlaku 1 jam):</p>
-        <a href="${process.env.FRONTEND_URL}/reset-password?token=${token}">Reset Password</a>
+        <a href="${resetLink}">Reset Password</a>
       `,
     });
 
     res.json({ message: "Link reset password sudah dikirim ke email Anda" });
-  } catch (error) {
-    console.error("Forgot password error:", error);
+  } catch (err) {
+    console.error("Forgot password error:", err);
     res.status(500).json({ message: "Terjadi kesalahan server" });
   }
 };
