@@ -171,7 +171,7 @@ export const forgotPassword = async (req, res) => {
 
   try {
     // cek user berdasarkan email
-    const result = await db.query("SELECT * FROM users WHERE email = $1", [email]);
+    const result = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
     if (result.rows.length === 0) {
       return res.status(404).json({ message: "Email tidak ditemukan" });
     }
@@ -181,12 +181,12 @@ export const forgotPassword = async (req, res) => {
     const expiry = new Date(Date.now() + 3600000); // 1 jam ke depan
 
     // simpan ke DB
-    await db.query(
-      "UPDATE users SET reset_token = $1, reset_token_expiry = $2 WHERE email = $3",
+    await pool.query(
+      "UPDATE users SET reset_token = $1, reset_token_expires = $2 WHERE email = $3",
       [token, expiry, email]
     );
 
-    // kirim email
+    // kirim email via Resend
     await resend.emails.send({
       from: process.env.EMAIL_FROM,
       to: email,
@@ -211,8 +211,8 @@ export const resetPassword = async (req, res) => {
 
   try {
     // cek token valid & tidak expired
-    const result = await db.query(
-      "SELECT * FROM users WHERE reset_token = $1 AND reset_token_expiry > NOW()",
+    const result = await pool.query(
+      "SELECT * FROM users WHERE reset_token = $1 AND reset_token_expires > NOW()",
       [token]
     );
 
@@ -226,8 +226,8 @@ export const resetPassword = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // update password + hapus token reset
-    await db.query(
-      "UPDATE users SET password = $1, reset_token = NULL, reset_token_expiry = NULL WHERE id = $2",
+    await pool.query(
+      "UPDATE users SET password = $1, reset_token = NULL, reset_token_expires = NULL WHERE id = $2",
       [hashedPassword, user.id]
     );
 
