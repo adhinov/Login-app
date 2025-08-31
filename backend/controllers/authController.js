@@ -165,25 +165,26 @@ export const setPassword = async (req, res) => {
   }
 };
 
+//===================== FORGOT PASSWORD ====================
 export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
-    const [rows] = await pool.query("SELECT * FROM users WHERE email = ?", [email]);
+
+    // ✅ Gunakan $1 untuk Postgres
+    const { rows } = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
 
     if (rows.length === 0) {
       return res.status(404).json({ message: "Email tidak ditemukan" });
     }
 
-    // ===== CEK FRONTEND_URL =====
     if (!process.env.FRONTEND_URL) {
       console.error("❌ FRONTEND_URL not defined in environment variables");
       return res.status(500).json({ message: "Konfigurasi server tidak lengkap" });
     }
 
     const token = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: "1h" });
-
     const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
-    console.log("🔗 Generated reset link:", resetLink); // Debug log ke Railway
+    console.log("🔗 Generated reset link:", resetLink);
 
     await resend.emails.send({
       from: "onboarding@resend.dev",
