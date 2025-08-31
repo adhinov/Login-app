@@ -5,7 +5,11 @@ import pool from "../config/db.js";
 import { sendEmail } from "../utils/sendEmail.js";
 import crypto from "crypto";
 import dotenv from "dotenv";
+import { Resend } from "resend";
 dotenv.config();
+
+// Konfigurasi Resend
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // ====================== REGISTER ======================
 export const register = async (req, res) => {
@@ -161,59 +165,54 @@ export const setPassword = async (req, res) => {
   }
 };
 
-// ====================== FORGOT PASSWORD ======================
+// ==================== LUPA PASSWORD ====================
 export const forgotPassword = async (req, res) => {
   const { email } = req.body;
 
   try {
-    // cek user
-    const result = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
+    // cek user berdasarkan email
+    const result = await db.query("SELECT * FROM users WHERE email = $1", [email]);
     if (result.rows.length === 0) {
       return res.status(404).json({ message: "Email tidak ditemukan" });
     }
 
-    const user = result.rows[0];
+    // generate token & expiry
+    const token = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: "1h" });
+    const expiry = new Date(Date.now() + 3600000); // 1 jam ke depan
 
-    // generate token reset
-    const token = crypto.randomBytes(32).toString("hex");
-    const expire = new Date(Date.now() + 3600000); // 1 jam
-
-    await pool.query(
-      "UPDATE users SET reset_token = $1, reset_token_expire = $2 WHERE id = $3",
-      [token, expire, user.id]
+    // simpan ke DB
+    await db.query(
+      "UPDATE users SET reset_token = $1, reset_token_expiry = $2 WHERE email = $3",
+      [token, expiry, email]
     );
 
-    const resetLink = `${process.env.FRONTEND_URL}/reset-password/${token}`;
+    // kirim email
+    await resend.emails.send({
+      from: process.env.EMAIL_FROM,
+      to: email,
+      subject: "Reset Password - Login App",
+      html: `
+        <p>Kami menerima permintaan reset password untuk akun Anda.</p>
+        <p>Klik link berikut untuk reset password (berlaku 1 jam):</p>
+        <a href="${process.env.FRONTEND_URL}/reset-password?token=${token}">Reset Password</a>
+      `,
+    });
 
-    // kirim email via Resend
-    const success = await sendEmail(
-      email,
-      "Reset Password - Login App",
-      `<p>Klik link berikut untuk reset password:</p>
-       <a href="${resetLink}">${resetLink}</a>
-       <p>Link berlaku 1 jam</p>`
-    );
-
-    if (!success) {
-      return res.status(500).json({ message: "Gagal mengirim email reset" });
-    }
-
-    res.json({ message: "Link reset password sudah dikirim ke email" });
-  } catch (err) {
-    console.error("Forgot password error:", err);
-    res.status(500).json({ message: "Server error" });
+    res.json({ message: "Link reset password sudah dikirim ke email Anda" });
+  } catch (error) {
+    console.error("Forgot password error:", error);
+    res.status(500).json({ message: "Terjadi kesalahan server" });
   }
 };
 
-// ====================== RESET PASSWORD ======================
+// ==================== RESET PASSWORD ====================
 export const resetPassword = async (req, res) => {
-  try {
-    const { token } = req.params;
-    const { password } = req.body;
+  const { token, password } = req.body;
 
-    // cek token di DB
-    const result = await pool.query(
-      "SELECT * FROM users WHERE reset_token = $1 AND reset_token_expire > NOW()",
+  try {
+    // cek token valid & tidak expired
+    const result = await db.query(
+      "SELECT * FROM users WHERE reset_token = $1 AND reset_token_expiry > NOW()",
       [token]
     );
 
@@ -226,27 +225,15 @@ export const resetPassword = async (req, res) => {
     // hash password baru
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // update password & hapus token
-    await pool.query(
-      "UPDATE users SET password = $1, reset_token = NULL, reset_token_expire = NULL WHERE id = $2",
+    // update password + hapus token reset
+    await db.query(
+      "UPDATE users SET password = $1, reset_token = NULL, reset_token_expiry = NULL WHERE id = $2",
       [hashedPassword, user.id]
     );
 
-    // buat token login baru
-    const newToken = jwt.sign({ id: user.id, role: user.role_id }, process.env.JWT_SECRET, { expiresIn: "1h" });
-
-    res.json({
-      message: "Password reset successful",
-      token: newToken,
-      user: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        role: user.role_id
-      }
-    });
+    res.json({ message: "Password berhasil direset, silakan login dengan password baru" });
   } catch (error) {
     console.error("Reset password error:", error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Terjadi kesalahan server" });
   }
 };
