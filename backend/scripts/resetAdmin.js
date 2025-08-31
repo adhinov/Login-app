@@ -1,6 +1,6 @@
 // resetAdmin.js
 import bcrypt from "bcryptjs";
-import pool from "./config/db.js";
+import pool from "../config/db.js";
 
 const resetAdminPassword = async () => {
   try {
