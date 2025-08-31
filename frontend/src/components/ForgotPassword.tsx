@@ -1,19 +1,37 @@
-import { useState } from 'react';
-import axios from 'axios';
-import { FaEnvelope } from 'react-icons/fa';
-import './FormStyles.css';
+import { useState } from "react";
+import { FaEnvelope } from "react-icons/fa";
+import { Link } from "react-router-dom";
+import axios, { AxiosError } from "axios";
+import "./FormStyles.css";
 
 const ForgotPassword = () => {
-  const [email, setEmail] = useState('');
-  const [successMessage, setSuccessMessage] = useState(false);
+  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async () => {
+  const apiUrl = import.meta.env.VITE_API_URL;
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      setMessage("Email tidak boleh kosong.");
+      return;
+    }
+
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/forgot-password`, { email });
-      setSuccessMessage(true);
-    } catch (error) {
-      console.error('Gagal mengirim email reset:', error);
-      alert('Gagal mengirim email reset. Silakan coba lagi.');
+      setLoading(true);
+      setMessage("");
+
+      const res = await axios.post(`${apiUrl}/api/auth/forgot-password`, { email });
+
+      setMessage(res.data.message || "Link reset password telah dikirim ke email Anda.");
+      setEmail("");
+    } catch (err) {
+      const error = err as AxiosError<{ message: string }>;
+      const errorMessage =
+        error.response?.data?.message || "Gagal mengirim link reset password. Silakan coba lagi.";
+      setMessage(errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -21,6 +39,8 @@ const ForgotPassword = () => {
     <div className="form-container">
       <div className="form-box">
         <h2 className="form-title green">Lupa Password</h2>
+
+        {message && <p className="form-message error-message">{message}</p>}
 
         <div className="form-group">
           <label>Email</label>
@@ -31,24 +51,23 @@ const ForgotPassword = () => {
               placeholder="Masukkan email Anda"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              required
             />
           </div>
         </div>
 
-        <button className="form-button green" onClick={handleSubmit}>
-          Kirim Link Reset
+        <button
+          className="form-button green"
+          onClick={handleForgotPassword}
+          disabled={loading}
+        >
+          {loading ? "Mengirim..." : "Kirim Link Reset"}
         </button>
 
-        {successMessage && (
-          <div className="message-blink">
-            <FaEnvelope className="blink-icon" />
-            <span>Reset password telah dikirim ke inbox email Anda</span>
-          </div>
-        )}
-
         <div className="form-footer">
-          Ingat password?{' '}
-          <a href="/login" className="link-blue">Kembali ke Login</a>
+          <Link to="/login" className="link-blue">
+            Kembali ke Login
+          </Link>
         </div>
       </div>
     </div>

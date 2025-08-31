@@ -1,45 +1,54 @@
-import { useState } from 'react';
-import { FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
-import { useParams, Link } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
-import axios, { AxiosError } from 'axios'; // Import AxiosError
-import './FormStyles.css';
+import { useState } from "react";
+import { FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import axios, { AxiosError } from "axios";
+import "./FormStyles.css";
 
 const ResetPassword = () => {
-  const { token } = useParams();
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const { token } = useParams<{ token: string }>();
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const apiUrl = import.meta.env.VITE_API_URL;
 
   const handleReset = async () => {
+    // Validasi sederhana
     if (password.length < 6) {
-      setMessage('Password harus berisi minimal 6 karakter');
+      setMessage("Password harus berisi minimal 6 karakter");
       return;
     }
 
     if (password !== confirmPassword) {
-      setMessage('Passwords tidak cocok');
+      setMessage("Passwords tidak cocok");
       return;
     }
 
     try {
-      await axios.post(`${apiUrl}/api/auth/reset-password`, { token, password });
+      setLoading(true);
+      setMessage("");
 
-      alert('Password berhasil direset! Silakan login dengan password baru Anda.');
-      setMessage('');
-      navigate('/login');
-    } catch (err) { // Mengubah 'error' menjadi 'err' agar lebih jelas
-      // Beri tahu TypeScript bahwa 'err' adalah AxiosError
-      const error = err as AxiosError<{ message: string }>; 
-      console.error('Gagal reset password:', error);
-      
-      const errorMessage = error.response?.data?.message || 'Gagal mereset password. Silakan coba lagi.';
+      await axios.post(`${apiUrl}/api/auth/reset-password`, {
+        token,
+        password,
+      });
+
+      alert("Password berhasil direset! Silakan login dengan password baru Anda.");
+      navigate("/login");
+    } catch (err) {
+      const error = err as AxiosError<{ message: string }>;
+      console.error("Gagal reset password:", error);
+
+      const errorMessage =
+        error.response?.data?.message ||
+        "Gagal mereset password. Silakan coba lagi.";
       setMessage(errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -55,13 +64,16 @@ const ResetPassword = () => {
           <div className="input-wrapper">
             <FaLock className="input-icon" />
             <input
-              type={showPassword ? 'text' : 'password'}
+              type={showPassword ? "text" : "password"}
               placeholder="Minimal 6 karakter"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
             />
-            <span className="toggle-password" onClick={() => setShowPassword(!showPassword)}>
+            <span
+              className="toggle-password"
+              onClick={() => setShowPassword(!showPassword)}
+            >
               {showPassword ? <FaEyeSlash /> : <FaEye />}
             </span>
           </div>
@@ -72,24 +84,35 @@ const ResetPassword = () => {
           <div className="input-wrapper">
             <FaLock className="input-icon" />
             <input
-              type={showConfirmPassword ? 'text' : 'password'}
+              type={showConfirmPassword ? "text" : "password"}
               placeholder="Konfirmasi password baru"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
             />
-            <span className="toggle-password" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+            <span
+              className="toggle-password"
+              onClick={() =>
+                setShowConfirmPassword(!showConfirmPassword)
+              }
+            >
               {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
             </span>
           </div>
         </div>
 
-        <button className="form-button green" onClick={handleReset}>
-          Reset Password
+        <button
+          className="form-button green"
+          onClick={handleReset}
+          disabled={loading}
+        >
+          {loading ? "Memproses..." : "Reset Password"}
         </button>
 
         <div className="form-footer">
-          <Link to="/login" className="link-blue">Kembali ke Login</Link>
+          <Link to="/login" className="link-blue">
+            Kembali ke Login
+          </Link>
         </div>
       </div>
     </div>
