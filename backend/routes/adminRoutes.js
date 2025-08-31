@@ -13,9 +13,12 @@ const router = express.Router();
  */
 router.get("/users", verifyToken, isAdmin, async (req, res) => {
   try {
-    // ✅ ganti sesuai nama kolom di tabel kamu
+    // ✅ ambil kolom lengkap + join roles
     const { rows } = await db.query(
-      "SELECT id, username, email, role_id, created_at FROM users"
+      `SELECT u.id, u.username, u.email, u.phone_number, r.name AS role, u.created_at
+       FROM users u
+       JOIN roles r ON u.role_id = r.id
+       ORDER BY u.id ASC`
     );
 
     return res.json(rows);
