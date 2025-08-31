@@ -12,6 +12,7 @@ const ResetPassword = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
 
   const apiUrl = import.meta.env.VITE_API_URL;
@@ -19,12 +20,12 @@ const ResetPassword = () => {
   const handleReset = async () => {
     // Validasi sederhana
     if (password.length < 6) {
-      setMessage("Password harus berisi minimal 6 karakter");
+      setMessage("⚠️ Password harus berisi minimal 6 karakter");
       return;
     }
 
     if (password !== confirmPassword) {
-      setMessage("Passwords tidak cocok");
+      setMessage("⚠️ Password dan konfirmasi tidak cocok");
       return;
     }
 
@@ -37,15 +38,20 @@ const ResetPassword = () => {
         password,
       });
 
-      alert("Password berhasil direset! Silakan login dengan password baru Anda.");
-      navigate("/login");
+      setSuccess(true);
+      setMessage("✅ Password berhasil direset! Silakan login dengan password baru Anda.");
+
+      // Delay 2 detik lalu redirect
+      setTimeout(() => {
+        navigate("/login");
+      }, 2000);
     } catch (err) {
       const error = err as AxiosError<{ message: string }>;
       console.error("Gagal reset password:", error);
 
       const errorMessage =
         error.response?.data?.message ||
-        "Gagal mereset password. Silakan coba lagi.";
+        "❌ Gagal mereset password. Silakan coba lagi.";
       setMessage(errorMessage);
     } finally {
       setLoading(false);
@@ -57,7 +63,15 @@ const ResetPassword = () => {
       <div className="form-box">
         <h2 className="form-title green">Reset Password</h2>
 
-        {message && <p className="form-message error-message">{message}</p>}
+        {message && (
+          <p
+            className={`form-message ${
+              success ? "success-message" : "error-message"
+            }`}
+          >
+            {message}
+          </p>
+        )}
 
         <div className="form-group">
           <label>Password Baru</label>
@@ -106,7 +120,7 @@ const ResetPassword = () => {
           onClick={handleReset}
           disabled={loading}
         >
-          {loading ? "Memproses..." : "Reset Password"}
+          {loading ? "⏳ Memproses..." : "Reset Password"}
         </button>
 
         <div className="form-footer">
