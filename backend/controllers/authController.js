@@ -2,7 +2,8 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import pool from "../config/db.js";
-import nodemailer from "nodemailer";
+import { sendEmail } from "../utils/sendEmail.js";
+import crypto from "crypto";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -162,31 +163,44 @@ export const setPassword = async (req, res) => {
 
 // ====================== FORGOT PASSWORD ======================
 export const forgotPassword = async (req, res) => {
-  try {
-    const { email } = req.body;
+  const { email } = req.body;
 
-    const result = await pool.query("SELECT id, username, email FROM users WHERE email = $1", [email]);
-    if (result.rows.length === 0) return res.status(404).json({ message: "User not found" });
+  try {
+    // cek user
+    const result = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Email tidak ditemukan" });
+    }
 
     const user = result.rows[0];
-    const resetToken = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: "15m" });
-    const resetLink = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
 
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
-    });
+    // generate token reset
+    const token = crypto.randomBytes(32).toString("hex");
+    const expire = new Date(Date.now() + 3600000); // 1 jam
 
-    await transporter.sendMail({
-      from: `"Login App" <${process.env.EMAIL_USER}>`,
-      to: email,
-      subject: "Reset Your Password",
-      html: `<p>Click the link below to reset your password:</p><a href="${resetLink}">${resetLink}</a>`
-    });
+    await pool.query(
+      "UPDATE users SET reset_token = $1, reset_token_expire = $2 WHERE id = $3",
+      [token, expire, user.id]
+    );
 
-    res.json({ message: "Reset link sent to email" });
-  } catch (error) {
-    console.error("Forgot password error:", error);
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password/${token}`;
+
+    // kirim email via Resend
+    const success = await sendEmail(
+      email,
+      "Reset Password - Login App",
+      `<p>Klik link berikut untuk reset password:</p>
+       <a href="${resetLink}">${resetLink}</a>
+       <p>Link berlaku 1 jam</p>`
+    );
+
+    if (!success) {
+      return res.status(500).json({ message: "Gagal mengirim email reset" });
+    }
+
+    res.json({ message: "Link reset password sudah dikirim ke email" });
+  } catch (err) {
+    console.error("Forgot password error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -197,21 +211,29 @@ export const resetPassword = async (req, res) => {
     const { token } = req.params;
     const { password } = req.body;
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    await pool.query("UPDATE users SET password = $1 WHERE id = $2", [hashedPassword, decoded.id]);
-
+    // cek token di DB
     const result = await pool.query(
-      `SELECT u.id, u.username, u.email, r.name AS role
-       FROM users u
-       JOIN roles r ON u.role_id = r.id
-       WHERE u.id = $1`,
-      [decoded.id]
+      "SELECT * FROM users WHERE reset_token = $1 AND reset_token_expire > NOW()",
+      [token]
     );
 
+    if (result.rows.length === 0) {
+      return res.status(400).json({ message: "Token tidak valid atau sudah kadaluarsa" });
+    }
+
     const user = result.rows[0];
-    const newToken = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
+
+    // hash password baru
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // update password & hapus token
+    await pool.query(
+      "UPDATE users SET password = $1, reset_token = NULL, reset_token_expire = NULL WHERE id = $2",
+      [hashedPassword, user.id]
+    );
+
+    // buat token login baru
+    const newToken = jwt.sign({ id: user.id, role: user.role_id }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
     res.json({
       message: "Password reset successful",
@@ -220,11 +242,11 @@ export const resetPassword = async (req, res) => {
         id: user.id,
         username: user.username,
         email: user.email,
-        role: user.role
+        role: user.role_id
       }
     });
   } catch (error) {
     console.error("Reset password error:", error);
-    res.status(500).json({ message: "Invalid or expired token" });
+    res.status(500).json({ message: "Server error" });
   }
 };
