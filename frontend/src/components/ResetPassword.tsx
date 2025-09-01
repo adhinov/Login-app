@@ -18,7 +18,11 @@ const ResetPassword = () => {
   const apiUrl = import.meta.env.VITE_API_URL;
 
   const handleReset = async () => {
-    // Validasi sederhana
+    if (!token) {
+      setMessage("❌ Token reset password tidak ditemukan.");
+      return;
+    }
+
     if (password.length < 6) {
       setMessage("⚠️ Password harus berisi minimal 6 karakter");
       return;
@@ -33,13 +37,13 @@ const ResetPassword = () => {
       setLoading(true);
       setMessage("");
 
-      await axios.post(`${apiUrl}/api/auth/reset-password`, {
+      const res = await axios.post(`${apiUrl}/api/auth/reset-password`, {
         token,
         password,
       });
 
       setSuccess(true);
-      setMessage("✅ Password berhasil direset! Silakan login dengan password baru Anda.");
+      setMessage(res.data?.message || "✅ Password berhasil direset! Silakan login dengan password baru Anda.");
 
       // Delay 2 detik lalu redirect
       setTimeout(() => {
