@@ -206,36 +206,30 @@ export const forgotPassword = async (req, res) => {
   }
 };
 
-
 // ==================== RESET PASSWORD ====================
 export const resetPassword = async (req, res) => {
   const { token, password } = req.body;
 
   try {
-    // cek token valid & tidak expired
-    const result = await pool.query(
-      "SELECT * FROM users WHERE reset_token = $1 AND reset_token_expires > NOW()",
-      [token]
-    );
+    // ✅ verifikasi JWT dari token reset
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    if (result.rows.length === 0) {
-      return res.status(400).json({ message: "Token tidak valid atau sudah kadaluarsa" });
-    }
-
-    const user = result.rows[0];
-
-    // hash password baru
+    // ✅ hash password baru
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // update password + hapus token reset
-    await pool.query(
-      "UPDATE users SET password = $1, reset_token = NULL, reset_token_expires = NULL WHERE id = $2",
-      [hashedPassword, user.id]
-    );
+    // ✅ update password user berdasarkan email yg ada di token
+    await pool.query("UPDATE users SET password = $1 WHERE email = $2", [
+      hashedPassword,
+      decoded.email,
+    ]);
 
-    res.json({ message: "Password berhasil direset, silakan login dengan password baru" });
+    res.json({
+      message: "Password berhasil direset, silakan login dengan password baru",
+    });
   } catch (error) {
-    console.error("Reset password error:", error);
-    res.status(500).json({ message: "Terjadi kesalahan server" });
+    console.error("Reset password error:", error.message);
+    res.status(400).json({
+      message: "Token tidak valid atau sudah kadaluarsa",
+    });
   }
 };
