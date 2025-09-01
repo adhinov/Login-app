@@ -6,7 +6,7 @@ import "./FormStyles.css";
 
 const ResetPassword = () => {
   const [searchParams] = useSearchParams();
-  const token = searchParams.get("token"); // ambil token dari query string
+  const token = searchParams.get("token");
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -15,8 +15,9 @@ const ResetPassword = () => {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const navigate = useNavigate();
+  const [showModal, setShowModal] = useState(false);
 
+  const navigate = useNavigate();
   const apiUrl = import.meta.env.VITE_API_URL;
 
   const handleReset = async () => {
@@ -50,10 +51,7 @@ const ResetPassword = () => {
           "✅ Password berhasil direset! Silakan login dengan password baru Anda."
       );
 
-      // Delay 2 detik lalu redirect
-      setTimeout(() => {
-        navigate("/login");
-      }, 2000);
+      setShowModal(true); // tampilkan modal sukses
     } catch (err) {
       const error = err as AxiosError<{ message: string }>;
       console.error("Gagal reset password:", error);
@@ -67,19 +65,20 @@ const ResetPassword = () => {
     }
   };
 
+  const handleCloseModal = () => {
+    setShowModal(false);
+    if (success) {
+      navigate("/login");
+    }
+  };
+
   return (
     <div className="form-container">
       <div className="form-box">
         <h2 className="form-title green">Reset Password</h2>
 
-        {message && (
-          <p
-            className={`form-message ${
-              success ? "success-message" : "error-message"
-            }`}
-          >
-            {message}
-          </p>
+        {message && !success && (
+          <p className="form-message error-message">{message}</p>
         )}
 
         <div className="form-group">
@@ -138,6 +137,19 @@ const ResetPassword = () => {
           </Link>
         </div>
       </div>
+
+      {/* Modal Custom */}
+      {showModal && (
+        <div className="modal-overlay">
+          <div className="modal-box">
+            <h3>Berhasil!</h3>
+            <p>{message}</p>
+            <button className="modal-button" onClick={handleCloseModal}>
+              OK
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
