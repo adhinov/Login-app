@@ -1,9 +1,16 @@
 // src/pages/Signup.tsx
-import { useState } from 'react';
-import { FaEnvelope, FaUser, FaPhone, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
-import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import './FormStyles.css';
+import { useState } from "react";
+import {
+  FaEnvelope,
+  FaUser,
+  FaPhone,
+  FaLock,
+  FaEye,
+  FaEyeSlash,
+} from "react-icons/fa";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
+import "./FormStyles.css";
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -12,24 +19,25 @@ const Signup = () => {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    email: '',
-    username: '',
-    phone_Number: '', // ✅ sesuai backend (phone_number di DB, tapi API map ke camelCase)
-    password: '',
+    email: "",
+    username: "",
+    phone_Number: "", // ✅ sesuai backend
+    password: "",
   });
 
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState("");
+  const [showModal, setShowModal] = useState(false);
 
   const validateForm = () => {
     const { email, username, phone_Number, password } = formData;
 
-    if (!email) return 'Email belum diisi';
-    if (!/\S+@\S+\.\S+/.test(email)) return 'Format email tidak valid';
-    if (!username) return 'Username belum diisi';
-    if (!phone_Number) return 'No. HP belum diisi';
-    if (!password) return 'Password belum diisi';
-    if (password.length < 6) return 'Password minimal 6 karakter';
-    return '';
+    if (!email) return "Email belum diisi";
+    if (!/\S+@\S+\.\S+/.test(email)) return "Format email tidak valid";
+    if (!username) return "Username belum diisi";
+    if (!phone_Number) return "No. HP belum diisi";
+    if (!password) return "Password belum diisi";
+    if (password.length < 6) return "Password minimal 6 karakter";
+    return "";
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -37,26 +45,32 @@ const Signup = () => {
   };
 
   const handleSignup = async () => {
-  const validationError = validateForm();
+    const validationError = validateForm();
     if (validationError) {
       setMessage(validationError);
       return;
     }
 
-    setMessage('');
+    setMessage("");
     try {
-      // ✅ ubah signup -> register
       await axios.post(`${apiUrl}/api/auth/register`, formData);
 
-      alert('Signup berhasil! Silakan login.');
-      navigate('/login');
+      // tampilkan modal sukses
+      setShowModal(true);
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
-        setMessage(err.response?.data?.message || 'Signup gagal. Coba lagi.');
+        setMessage(
+          err.response?.data?.message || "Signup gagal. Coba lagi."
+        );
       } else {
-        setMessage('Terjadi kesalahan saat signup.');
+        setMessage("Terjadi kesalahan saat signup.");
       }
     }
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    navigate("/login");
   };
 
   return (
@@ -100,7 +114,7 @@ const Signup = () => {
             <FaPhone className="input-icon" />
             <input
               type="text"
-              name="phone_Number"  // ✅ sesuai backend
+              name="phone_Number"
               placeholder="Masukan No HP"
               value={formData.phone_Number}
               onChange={handleChange}
@@ -114,7 +128,7 @@ const Signup = () => {
           <div className="input-wrapper">
             <FaLock className="input-icon" />
             <input
-              type={showPassword ? 'text' : 'password'}
+              type={showPassword ? "text" : "password"}
               name="password"
               placeholder="Masukan Password"
               value={formData.password}
@@ -138,12 +152,25 @@ const Signup = () => {
         {message && <p className="error-message">{message}</p>}
 
         <div className="form-footer">
-          Sudah punya akun?{' '}
+          Sudah punya akun?{" "}
           <Link to="/login" className="link-blue">
             Kembali ke Login
           </Link>
         </div>
       </div>
+
+      {/* Modal sukses */}
+      {showModal && (
+        <div className="modal-overlay">
+          <div className="modal-box">
+            <h3>Berhasil!</h3>
+            <p>Signup berhasil! Silakan login.</p>
+            <button className="modal-button" onClick={handleCloseModal}>
+              OK
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
