@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import axios, { AxiosError } from "axios";
 import "./FormStyles.css";
 
 const ResetPassword = () => {
-  const { token } = useParams<{ token: string }>();
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get("token"); // ambil token dari query string
+
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -43,7 +45,10 @@ const ResetPassword = () => {
       });
 
       setSuccess(true);
-      setMessage(res.data?.message || "✅ Password berhasil direset! Silakan login dengan password baru Anda.");
+      setMessage(
+        res.data?.message ||
+          "✅ Password berhasil direset! Silakan login dengan password baru Anda."
+      );
 
       // Delay 2 detik lalu redirect
       setTimeout(() => {
