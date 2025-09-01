@@ -186,15 +186,12 @@ html, body, #root {
   font-size: 12px;
 }
 
-/* Notifikasi sukses berkedip */
+/* Notifikasi sukses berkedip (tanpa kotak background) */
 .success-blink {
-  margin-top: 10px;
-  color: #856404;
-  background: #fff3cd;
-  border: 1px solid #ffeeba;
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-weight: bold;
+  margin-top: 8px;
+  color: #ffc107; /* kuning */
+  font-size: 14px; /* lebih kecil */
+  font-weight: 500;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -203,7 +200,7 @@ html, body, #root {
 
 .inline-icon {
   color: #ffc107;
-  font-size: 18px;
+  font-size: 16px;
 }
 
 /* Animasi berkedip */
