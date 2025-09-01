@@ -185,3 +185,30 @@ html, body, #root {
   color: #aaa;
   font-size: 12px;
 }
+
+/* Notifikasi sukses berkedip */
+.success-blink {
+  margin-top: 10px;
+  color: #856404;
+  background: #fff3cd;
+  border: 1px solid #ffeeba;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  animation: blink 1.2s infinite;
+}
+
+.inline-icon {
+  color: #ffc107;
+  font-size: 18px;
+}
+
+/* Animasi berkedip */
+@keyframes blink {
+  0% { opacity: 1; }
+  50% { opacity: 0.3; }
+  100% { opacity: 1; }
+}
