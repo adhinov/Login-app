@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useLayoutEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
@@ -56,11 +56,17 @@ const AdminDashboard: React.FC = () => {
     fetchUsers();
   }, []);
 
-  // ✅ Auto scroll ke paling kiri saat load data
-  useEffect(() => {
-    if (tableWrapperRef.current) {
-      tableWrapperRef.current.scrollLeft = 0;
-    }
+  // ✅ Pastikan posisi scroll selalu dimulai dari paling kiri
+  useLayoutEffect(() => {
+    const el = tableWrapperRef.current;
+    if (!el) return;
+    // jalankan setelah layout benar-benar selesai
+    const toLeft = () => {
+      el.scrollLeft = 0;
+    };
+    requestAnimationFrame(toLeft);
+    const t = setTimeout(toLeft, 0);
+    return () => clearTimeout(t);
   }, [users]);
 
   const handleLogout = () => {
@@ -72,15 +78,15 @@ const AdminDashboard: React.FC = () => {
 
   // ✅ Tombol scroll manual
   const scrollLeft = () => {
-    if (tableWrapperRef.current) {
-      tableWrapperRef.current.scrollBy({ left: -200, behavior: "smooth" });
-    }
+    const el = tableWrapperRef.current;
+    if (!el) return;
+    el.scrollBy({ left: -220, behavior: "smooth" });
   };
 
   const scrollRight = () => {
-    if (tableWrapperRef.current) {
-      tableWrapperRef.current.scrollBy({ left: 200, behavior: "smooth" });
-    }
+    const el = tableWrapperRef.current;
+    if (!el) return;
+    el.scrollBy({ left: 220, behavior: "smooth" });
   };
 
   const thStyle: React.CSSProperties = {
@@ -136,30 +142,40 @@ const AdminDashboard: React.FC = () => {
         <button
           onClick={scrollLeft}
           style={{ ...buttonStyle, background: "#6c757d" }}
+          aria-label="Scroll left"
         >
           ◀
         </button>
         <button
           onClick={scrollRight}
           style={{ ...buttonStyle, background: "#6c757d" }}
+          aria-label="Scroll right"
         >
           ▶
         </button>
       </div>
 
-      {/* ✅ Wrapper scrollable */}
+      {/* ✅ Wrapper scrollable (gunakan .table-wrapper dari CSS kamu) */}
       <div
         ref={tableWrapperRef}
+        className="table-wrapper"
         style={{
           overflowX: "auto",
-          whiteSpace: "nowrap",
+          overflowY: "hidden",
+          WebkitOverflowScrolling: "touch" as any,
+          overscrollBehaviorX: "contain",
+          touchAction: "pan-x",
+          scrollBehavior: "smooth",
+          direction: "ltr",
+          // Hapus centering otomatis di beberapa browser
+          textAlign: "left",
           paddingBottom: 4,
         }}
       >
         <table
           style={{
-            width: "50%",
-            minWidth: 900,
+            width: "100%",       // ❗ full lebar kontainer
+            minWidth: 900,       // ❗ paksa overflow agar bisa digeser
             background: "#fff",
             boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
             borderRadius: 8,

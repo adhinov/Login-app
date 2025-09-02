@@ -267,11 +267,13 @@ html, body, #root {
 /* ✅ Pastikan wrapper tabel admin bisa scroll kiri-kanan */
 .table-wrapper {
   overflow-x: auto;
+  overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
-  display: block;
-  width: 100%;
-  position: relative; /* penting supaya tidak terkunci */
+  overscroll-behavior-x: contain;
+  touch-action: pan-x;
   scroll-behavior: smooth;
+  text-align: left;    /* cegah centering aneh */
+  direction: ltr;      /* pastikan arah scrolling normal kiri→kanan */
 }
 
 .table-wrapper table {
