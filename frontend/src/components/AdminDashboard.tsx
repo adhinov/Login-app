@@ -109,7 +109,7 @@ const AdminDashboard: React.FC = () => {
           style={{
             borderCollapse: "collapse",
             width: "100%",
-            minWidth: 900, // ✅ agar tabel bisa discroll di layar kecil
+            minWidth: "900px", // ✅ tabelnya tetap lebar, tapi body tidak melar
             background: "#fff",
             boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
             borderRadius: 8,
