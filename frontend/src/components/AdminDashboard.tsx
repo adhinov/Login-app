@@ -40,7 +40,6 @@ const AdminDashboard: React.FC = () => {
       console.error("Gagal mengambil data user:", err);
 
       if (err.response?.status === 401 || err.response?.status === 403) {
-        // token invalid / bukan admin → paksa logout
         localStorage.removeItem("token");
         setError("Akses ditolak. Silakan login ulang.");
         navigate("/login");
@@ -69,12 +68,14 @@ const AdminDashboard: React.FC = () => {
     textAlign: "center",
     background: "#e0e0e0",
     fontWeight: "bold",
+    whiteSpace: "nowrap", // ✅ supaya header tidak patah
   };
 
   const tdStyle: React.CSSProperties = {
     border: "1px solid #ddd",
     padding: "8px",
     textAlign: "center",
+    whiteSpace: "nowrap", // ✅ supaya konten tetap dalam satu baris
   };
 
   const buttonStyle: React.CSSProperties = {
@@ -99,17 +100,22 @@ const AdminDashboard: React.FC = () => {
       <h1 style={{ textAlign: "center", marginBottom: 8 }}>Admin Dashboard</h1>
       <h2 style={{ textAlign: "center", marginBottom: 18 }}>Daftar Pengguna</h2>
 
-      {/* Info Loading & Error */}
       {loading && <p style={{ textAlign: "center" }}>⏳ Memuat data...</p>}
       {error && <p style={{ textAlign: "center", color: "red" }}>{error}</p>}
 
-      {/* Tabel */}
-      <div style={{ display: "flex", justifyContent: "center" }}>
+      {/* ✅ Wrapper untuk scroll horizontal */}
+      <div
+        style={{
+          overflowX: "auto",
+          maxWidth: "100%",
+          margin: "0 auto",
+        }}
+      >
         <table
           style={{
             borderCollapse: "collapse",
             width: "100%",
-            maxWidth: 980,
+            minWidth: 800, // ✅ supaya tabel punya lebar minimum
             background: "#fff",
             boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
             borderRadius: 8,
@@ -150,12 +156,10 @@ const AdminDashboard: React.FC = () => {
         </table>
       </div>
 
-      {/* Jumlah user */}
       <p style={{ textAlign: "center", marginTop: 10 }}>
         Total Pengguna: <b>{users.length}</b>
       </p>
 
-      {/* Tombol bawah kanan */}
       <div
         style={{
           display: "flex",
@@ -169,7 +173,10 @@ const AdminDashboard: React.FC = () => {
         <button onClick={fetchUsers} style={buttonStyle} disabled={loading}>
           {loading ? "Refreshing..." : "Refresh"}
         </button>
-        <button onClick={handleLogout} style={{ ...buttonStyle, background: "#dc3545" }}>
+        <button
+          onClick={handleLogout}
+          style={{ ...buttonStyle, background: "#dc3545" }}
+        >
           Logout
         </button>
       </div>
