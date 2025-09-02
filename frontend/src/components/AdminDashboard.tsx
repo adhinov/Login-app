@@ -103,19 +103,13 @@ const AdminDashboard: React.FC = () => {
       {loading && <p style={{ textAlign: "center" }}>⏳ Memuat data...</p>}
       {error && <p style={{ textAlign: "center", color: "red" }}>{error}</p>}
 
-      {/* ✅ Wrapper scrollable */}
-      <div
-        style={{
-          overflowX: "auto",
-          maxWidth: "100%",
-          margin: "0 auto",
-        }}
-      >
+      {/* ✅ Wrapper scrollable pakai class CSS */}
+      <div className="table-wrapper">
         <table
           style={{
             borderCollapse: "collapse",
             width: "100%",
-            minWidth: 900, // ✅ minimum width agar tabel bisa discroll
+            minWidth: 900, // ✅ agar tabel bisa discroll di layar kecil
             background: "#fff",
             boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
             borderRadius: 8,
