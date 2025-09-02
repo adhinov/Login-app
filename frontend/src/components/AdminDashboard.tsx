@@ -56,7 +56,7 @@ const AdminDashboard: React.FC = () => {
     fetchUsers();
   }, []);
 
-  // ✅ Auto scroll ke paling kiri saat load
+  // ✅ Auto scroll ke paling kiri saat load data
   useEffect(() => {
     if (tableWrapperRef.current) {
       tableWrapperRef.current.scrollLeft = 0;
@@ -125,16 +125,40 @@ const AdminDashboard: React.FC = () => {
       {error && <p style={{ textAlign: "center", color: "red" }}>{error}</p>}
 
       {/* ✅ Tombol scroll kiri/kanan */}
-      <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginBottom: 6 }}>
-        <button onClick={scrollLeft} style={{ ...buttonStyle, background: "#6c757d" }}>◀</button>
-        <button onClick={scrollRight} style={{ ...buttonStyle, background: "#6c757d" }}>▶</button>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "flex-end",
+          gap: 8,
+          marginBottom: 6,
+        }}
+      >
+        <button
+          onClick={scrollLeft}
+          style={{ ...buttonStyle, background: "#6c757d" }}
+        >
+          ◀
+        </button>
+        <button
+          onClick={scrollRight}
+          style={{ ...buttonStyle, background: "#6c757d" }}
+        >
+          ▶
+        </button>
       </div>
 
       {/* ✅ Wrapper scrollable */}
-      <div ref={tableWrapperRef} className="table-wrapper">
+      <div
+        ref={tableWrapperRef}
+        style={{
+          overflowX: "auto",
+          whiteSpace: "nowrap",
+          paddingBottom: 4,
+        }}
+      >
         <table
           style={{
-            width: "70%",
+            width: "50%",
             minWidth: 900,
             background: "#fff",
             boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
