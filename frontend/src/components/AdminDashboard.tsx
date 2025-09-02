@@ -103,7 +103,7 @@ const AdminDashboard: React.FC = () => {
       {loading && <p style={{ textAlign: "center" }}>⏳ Memuat data...</p>}
       {error && <p style={{ textAlign: "center", color: "red" }}>{error}</p>}
 
-      {/* ✅ Wrapper untuk scroll horizontal */}
+      {/* ✅ Wrapper scrollable */}
       <div
         style={{
           overflowX: "auto",
@@ -115,11 +115,10 @@ const AdminDashboard: React.FC = () => {
           style={{
             borderCollapse: "collapse",
             width: "100%",
-            minWidth: 800, // ✅ supaya tabel punya lebar minimum
+            minWidth: 900, // ✅ minimum width agar tabel bisa discroll
             background: "#fff",
             boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
             borderRadius: 8,
-            overflow: "hidden",
           }}
         >
           <thead>
