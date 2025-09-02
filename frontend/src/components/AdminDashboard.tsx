@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
@@ -16,6 +16,7 @@ const AdminDashboard: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const tableWrapperRef = useRef<HTMLDivElement>(null);
 
   const fetchUsers = async () => {
     try {
@@ -55,10 +56,30 @@ const AdminDashboard: React.FC = () => {
     fetchUsers();
   }, []);
 
+  // ✅ Auto scroll ke paling kiri saat load
+  useEffect(() => {
+    if (tableWrapperRef.current) {
+      tableWrapperRef.current.scrollLeft = 0;
+    }
+  }, [users]);
+
   const handleLogout = () => {
     if (window.confirm("Yakin ingin logout?")) {
       localStorage.removeItem("token");
       navigate("/login");
+    }
+  };
+
+  // ✅ Tombol scroll manual
+  const scrollLeft = () => {
+    if (tableWrapperRef.current) {
+      tableWrapperRef.current.scrollBy({ left: -200, behavior: "smooth" });
+    }
+  };
+
+  const scrollRight = () => {
+    if (tableWrapperRef.current) {
+      tableWrapperRef.current.scrollBy({ left: 200, behavior: "smooth" });
     }
   };
 
@@ -68,14 +89,14 @@ const AdminDashboard: React.FC = () => {
     textAlign: "center",
     background: "#e0e0e0",
     fontWeight: "bold",
-    whiteSpace: "nowrap", // ✅ supaya header tidak patah
+    whiteSpace: "nowrap",
   };
 
   const tdStyle: React.CSSProperties = {
     border: "1px solid #ddd",
     padding: "8px",
     textAlign: "center",
-    whiteSpace: "nowrap", // ✅ supaya konten tetap dalam satu baris
+    whiteSpace: "nowrap",
   };
 
   const buttonStyle: React.CSSProperties = {
@@ -103,15 +124,23 @@ const AdminDashboard: React.FC = () => {
       {loading && <p style={{ textAlign: "center" }}>⏳ Memuat data...</p>}
       {error && <p style={{ textAlign: "center", color: "red" }}>{error}</p>}
 
-      {/* ✅ Wrapper scrollable pakai class CSS */}
-        <div className="table-wrapper">
-          <table
-            style={{
-              width: "70%",
-              background: "#fff",
-              boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
-              borderRadius: 8,
-            }}
+      {/* ✅ Tombol scroll kiri/kanan */}
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginBottom: 6 }}>
+        <button onClick={scrollLeft} style={{ ...buttonStyle, background: "#6c757d" }}>◀</button>
+        <button onClick={scrollRight} style={{ ...buttonStyle, background: "#6c757d" }}>▶</button>
+      </div>
+
+      {/* ✅ Wrapper scrollable */}
+      <div ref={tableWrapperRef} className="table-wrapper">
+        <table
+          style={{
+            width: "70%",
+            minWidth: 900,
+            background: "#fff",
+            boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+            borderRadius: 8,
+            borderCollapse: "collapse",
+          }}
         >
           <thead>
             <tr>
