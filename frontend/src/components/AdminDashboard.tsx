@@ -104,16 +104,14 @@ const AdminDashboard: React.FC = () => {
       {error && <p style={{ textAlign: "center", color: "red" }}>{error}</p>}
 
       {/* ✅ Wrapper scrollable pakai class CSS */}
-      <div className="table-wrapper">
-        <table
-          style={{
-            borderCollapse: "collapse",
-            width: "100%",
-            minWidth: "900px", // ✅ tabelnya tetap lebar, tapi body tidak melar
-            background: "#fff",
-            boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
-            borderRadius: 8,
-          }}
+        <div className="table-wrapper">
+          <table
+            style={{
+              width: "100%",
+              background: "#fff",
+              boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+              borderRadius: 8,
+            }}
         >
           <thead>
             <tr>
