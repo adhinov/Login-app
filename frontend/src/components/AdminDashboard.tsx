@@ -146,7 +146,7 @@ const AdminDashboard: React.FC = () => {
       <div ref={tableWrapperRef} className="table-wrapper">
         <table
           style={{
-            minWidth: 900,
+            minWidth: 750,
             background: "#fff",
             boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
             borderRadius: 8,
