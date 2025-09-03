@@ -19,3 +19,12 @@
     display: none;
   }
 }
+
+/* ✅ Added media query for larger screens */
+@media (min-width: 768px) {
+  .table-wrapper {
+    max-width: 900px; /* Adjust this value to your preferred max width */
+    margin: 0 auto; /* Center the table on the page */
+    display: block !important; /* Revert flex display for centering */
+  }
+}
