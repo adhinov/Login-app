@@ -118,31 +118,7 @@ const AdminDashboard: React.FC = () => {
       <h2 style={{ marginBottom: 18 }}>Daftar Pengguna</h2>
       {loading && <p>⏳ Memuat data...</p>}
       {error && <p style={{ color: "red" }}>{error}</p>}
-      <div
-        className="scroll-buttons"
-        style={{
-          display: "flex",
-          justifyContent: "flex-end",
-          gap: 8,
-          marginBottom: 6,
-        }}
-      >
-        <button
-          onClick={scrollLeft}
-          style={{ ...buttonStyle, background: "#6c757d" }}
-          aria-label="Scroll left"
-        >
-          ◀
-        </button>
-        <button
-          onClick={scrollRight}
-          style={{ ...buttonStyle, background: "#6c757d" }}
-          aria-label="Scroll right"
-        >
-          ▶
-        </button>
-      </div>
-
+      
       <div ref={tableWrapperRef} className="table-wrapper">
         <table
           style={{
@@ -196,7 +172,7 @@ const AdminDashboard: React.FC = () => {
           display: "flex",
           justifyContent: "flex-end",
           width: "100%",
-          maxWidth: 980,
+          maxWidth: 900,
           margin: "12px auto 0 auto",
           gap: 10,
         }}
