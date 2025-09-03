@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useLayoutEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import "./AdminDashboard.css"; // ✅ Impor file CSS
+import "./AdminDashboard.css";
 
 interface User {
   id: number;
@@ -82,9 +82,9 @@ const AdminDashboard: React.FC = () => {
   };
 
   const scrollRight = () => {
-    const el = tableWrapperRef.current;
-    if (!el) return;
-    el.scrollBy({ left: 220, behavior: "smooth" });
+      const el = tableWrapperRef.current;
+      if (!el) return;
+      el.scrollBy({ left: 220, behavior: "smooth" });
   };
 
   const thStyle: React.CSSProperties = {
@@ -120,16 +120,17 @@ const AdminDashboard: React.FC = () => {
         fontFamily: "tahoma, sans-serif",
         color: "#333",
         boxSizing: "border-box",
+        textAlign: "center", // ✅ Pindahkan ke sini
       }}
     >
-      <h1 style={{ textAlign: "center", marginBottom: 8 }}>Admin Dashboard</h1>
-      <h2 style={{ textAlign: "center", marginBottom: 18 }}>Daftar Pengguna</h2>
+      <h1 style={{ marginBottom: 8 }}>Admin Dashboard</h1>
+      <h2 style={{ marginBottom: 18 }}>Daftar Pengguna</h2>
 
-      {loading && <p style={{ textAlign: "center" }}>⏳ Memuat data...</p>}
-      {error && <p style={{ textAlign: "center", color: "red" }}>{error}</p>}
+      {loading && <p>⏳ Memuat data...</p>}
+      {error && <p style={{ color: "red" }}>{error}</p>}
 
       <div
-        className="scroll-buttons" // ✅ Tambahkan class untuk menyembunyikan tombol di layar besar
+        className="scroll-buttons"
         style={{
           display: "flex",
           justifyContent: "flex-end",
@@ -155,7 +156,12 @@ const AdminDashboard: React.FC = () => {
 
       <div
         ref={tableWrapperRef}
-        className="table-wrapper" // ✅ Tambahkan class ini
+        className="table-wrapper"
+        style={{
+          // ✅ Tambahkan gaya ini untuk memastikan isi kontainer rata kiri
+          textAlign: 'left',
+          width: '100%',
+        }}
       >
         <table
           style={{
@@ -198,7 +204,7 @@ const AdminDashboard: React.FC = () => {
         </table>
       </div>
 
-      <p style={{ textAlign: "center", marginTop: 10 }}>
+      <p style={{ marginTop: 10 }}>
         Total Pengguna: <b>{users.length}</b>
       </p>
 
