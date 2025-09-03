@@ -264,22 +264,7 @@ html, body, #root {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* ✅ Pastikan wrapper tabel admin bisa scroll kiri-kanan */
-.table-wrapper {
-  overflow-x: auto;
-  overflow-y: hidden;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior-x: contain;
-  touch-action: pan-x;
-  scroll-behavior: smooth;
-  text-align: left;    /* cegah centering aneh */
-  direction: ltr;      /* pastikan arah scrolling normal kiri→kanan */
-}
 
-.table-wrapper table {
-  min-width: 900px; /* pastikan lebih lebar dari layar */
-  border-collapse: collapse;
-}
 
 
 

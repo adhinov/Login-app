@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useRef, useLayoutEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import "./FormStyles.css";
 
 interface User {
   id: number;
@@ -57,11 +56,10 @@ const AdminDashboard: React.FC = () => {
     fetchUsers();
   }, []);
 
-  // ✅ Pastikan posisi scroll selalu dimulai dari paling kiri
+  // Pastikan posisi scroll selalu dimulai dari paling kiri
   useLayoutEffect(() => {
     const el = tableWrapperRef.current;
     if (!el) return;
-    // jalankan setelah layout benar-benar selesai
     const toLeft = () => {
       el.scrollLeft = 0;
     };
@@ -77,7 +75,7 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
-  // ✅ Tombol scroll manual
+  // Tombol scroll manual
   const scrollLeft = () => {
     const el = tableWrapperRef.current;
     if (!el) return;
@@ -131,7 +129,6 @@ const AdminDashboard: React.FC = () => {
       {loading && <p style={{ textAlign: "center" }}>⏳ Memuat data...</p>}
       {error && <p style={{ textAlign: "center", color: "red" }}>{error}</p>}
 
-      {/* ✅ Tombol scroll kiri/kanan */}
       <div
         style={{
           display: "flex",
@@ -156,27 +153,28 @@ const AdminDashboard: React.FC = () => {
         </button>
       </div>
 
-      {/* ✅ Wrapper scrollable (gunakan .table-wrapper dari CSS kamu) */}
       <div
         ref={tableWrapperRef}
         className="table-wrapper"
         style={{
           overflowX: "auto",
           overflowY: "hidden",
-          WebkitOverflowScrolling: "touch" as any,
+          WebkitOverflowScrolling: "touch",
           overscrollBehaviorX: "contain",
-          touchAction: "pan-x",
           scrollBehavior: "smooth",
           direction: "ltr",
-          // Hapus centering otomatis di beberapa browser
           textAlign: "left",
           paddingBottom: 4,
+          // Ini yang memastikan wrapper selalu full-width
+          width: "100%",
         }}
       >
         <table
           style={{
-            width: "45%",       // ❗ full lebar kontainer
-            minWidth: 900,       // ❗ paksa overflow agar bisa digeser
+            // Pastikan tabel memenuhi lebar kontainer
+            width: "100%",
+            // Paksa tabel untuk melebihi lebar kontainer agar bisa di-scroll
+            minWidth: 900,
             background: "#fff",
             boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
             borderRadius: 8,
