@@ -14,9 +14,6 @@ function App() {
     <div
       style={{
         minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
       }}
     >
       <Router>
@@ -28,7 +25,7 @@ function App() {
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/set-password" element={<SetPassword />} />
 
-          {/* ✅ Rute User */}
+          {/* Rute User */}
           <Route
             path="/welcome"
             element={
@@ -38,7 +35,7 @@ function App() {
             }
           />
 
-          {/* ✅ Rute Admin */}
+          {/* Rute Admin */}
           <Route
             path="/adminDashboard"
             element={
