@@ -175,7 +175,7 @@ const AdminDashboard: React.FC = () => {
       >
         <table
           style={{
-            width: "100%",       // ❗ full lebar kontainer
+            width: "45%",       // ❗ full lebar kontainer
             minWidth: 900,       // ❗ paksa overflow agar bisa digeser
             background: "#fff",
             boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
