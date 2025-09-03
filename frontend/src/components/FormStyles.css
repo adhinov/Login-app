@@ -269,3 +269,20 @@ html, body, #root {
   from { opacity: 0; transform: translateY(-10px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* Responsif untuk form agar tidak melebar di HP */
+@media (max-width: 480px) {
+  .form-box {
+    max-width: 320px; /* ✅ Batasi lebar maksimal di layar HP */
+    padding: 1.2rem;  /* ✅ Kurangi padding supaya compact */
+  }
+
+  .form-title {
+    font-size: 1.4rem; /* ✅ Kecilkan judul di layar HP */
+  }
+
+  .form-button {
+    font-size: 0.9rem;
+    padding: 0.45rem;
+  }
+}
