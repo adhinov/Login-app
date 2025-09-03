@@ -3,14 +3,14 @@
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-x: contain;
   scroll-behavior: smooth;
-  width: 70%;
+  width: 100%;
   display: flex !important;
   justify-content: flex-start !important;
 }
 
 .table-wrapper table {
   min-width: 400px;
-  width: 70%;
+  width: 1000%;
   border-collapse: collapse;
 }
 
