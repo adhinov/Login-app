@@ -74,6 +74,8 @@ html, body, #root {
   padding-left: 0.5rem;
   font-size: 0.9rem;
   outline: none;
+  width: 100%; /* ✅ Tambahkan ini untuk memastikan input mengisi lebar kontainer */
+  box-sizing: border-box; /* ✅ Pastikan ini ada agar padding tidak menambah lebar */
 }
 
 .input-icon {
