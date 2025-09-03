@@ -14,7 +14,7 @@
   border-collapse: collapse;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 580px) {
   .scroll-buttons {
     display: none;
   }
