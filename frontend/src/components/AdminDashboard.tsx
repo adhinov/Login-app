@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef, useLayoutEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import "./AdminDashboard.css"; // ✅ Impor file CSS
 
 interface User {
   id: number;
@@ -56,7 +57,6 @@ const AdminDashboard: React.FC = () => {
     fetchUsers();
   }, []);
 
-  // Pastikan posisi scroll selalu dimulai dari paling kiri
   useLayoutEffect(() => {
     const el = tableWrapperRef.current;
     if (!el) return;
@@ -75,7 +75,6 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
-  // Tombol scroll manual
   const scrollLeft = () => {
     const el = tableWrapperRef.current;
     if (!el) return;
@@ -130,6 +129,7 @@ const AdminDashboard: React.FC = () => {
       {error && <p style={{ textAlign: "center", color: "red" }}>{error}</p>}
 
       <div
+        className="scroll-buttons" // ✅ Tambahkan class untuk menyembunyikan tombol di layar besar
         style={{
           display: "flex",
           justifyContent: "flex-end",
@@ -155,30 +155,13 @@ const AdminDashboard: React.FC = () => {
 
       <div
         ref={tableWrapperRef}
-        className="table-wrapper"
-        style={{
-          overflowX: "auto",
-          overflowY: "hidden",
-          WebkitOverflowScrolling: "touch",
-          overscrollBehaviorX: "contain",
-          scrollBehavior: "smooth",
-          direction: "ltr",
-          textAlign: "left",
-          paddingBottom: 4,
-          // Ini yang memastikan wrapper selalu full-width
-          width: "100%",
-        }}
+        className="table-wrapper" // ✅ Tambahkan class ini
       >
         <table
           style={{
-            // Pastikan tabel memenuhi lebar kontainer
-            width: "100%",
-            // Paksa tabel untuk melebihi lebar kontainer agar bisa di-scroll
-            minWidth: 900,
             background: "#fff",
             boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
             borderRadius: 8,
-            borderCollapse: "collapse",
           }}
         >
           <thead>

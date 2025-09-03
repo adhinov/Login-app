@@ -1,0 +1,22 @@
+/* Pastikan tabel di dalam kontainernya */
+.table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  scroll-behavior: smooth;
+  width: 100%;
+}
+
+/* Pastikan tabel cukup lebar untuk memicu scroll */
+.table-wrapper table {
+  min-width: 900px;
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* Sembunyikan tombol scroll pada layar yang lebih besar */
+@media (min-width: 768px) {
+  .scroll-buttons {
+    display: none;
+  }
+}
