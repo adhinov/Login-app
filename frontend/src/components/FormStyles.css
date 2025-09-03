@@ -28,7 +28,7 @@ html, body, #root {
   border: 1px solid #434343;
   box-shadow: 0 0 10px rgba(0,0,0,0.2);
   width: 100%;
-  max-width: 350px;
+  max-width: 300px;
   box-sizing: border-box;
   color: #d8d8d8; /* ✅ Pastikan warna teks di dalam form box terang */
 }
