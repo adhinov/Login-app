@@ -12,7 +12,7 @@
   min-height: 100vh; /* Menggunakan min-height agar konten bisa melebihi 100vh jika dibutuhkan */
   background-color: #b5b5b6;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  color: #333; /* Mengubah warna teks agar lebih kontras dengan warna latar */
+  color: #e1ff00; /* Mengubah warna teks agar lebih kontras dengan warna latar */
   padding: 20px;
   box-sizing: border-box; /* Pastikan padding tidak menambah lebar atau tinggi elemen */
 }
