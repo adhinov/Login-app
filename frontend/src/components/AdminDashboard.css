@@ -9,8 +9,8 @@
 }
 
 .table-wrapper table {
-  min-width: 400px;
-  width: 1000%;
+  min-width: 300px;
+  width: 100%;
   border-collapse: collapse;
 }
 
