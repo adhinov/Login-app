@@ -5,6 +5,8 @@
   overscroll-behavior-x: contain;
   scroll-behavior: smooth;
   width: 100%;
+  display: flex; /* ✅ Tambahkan ini */
+  justify-content: flex-start; /* ✅ Rata kiri */
 }
 
 /* Pastikan tabel cukup lebar untuk memicu scroll */
@@ -20,3 +22,4 @@
     display: none;
   }
 }
+

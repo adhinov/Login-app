@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useLayoutEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import "./AdminDashboard.css";
+import "./AdminDashboard.css"; // ✅ Pastikan ini ada
 
 interface User {
   id: number;
@@ -23,24 +23,20 @@ const AdminDashboard: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-
       const token = localStorage.getItem("token");
       if (!token) {
         navigate("/login");
         return;
       }
-
       const res = await axios.get(
         `${import.meta.env.VITE_API_URL}/api/admin/users`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-
       setUsers(res.data);
     } catch (err: any) {
       console.error("Gagal mengambil data user:", err);
-
       if (err.response?.status === 401 || err.response?.status === 403) {
         localStorage.removeItem("token");
         setError("Akses ditolak. Silakan login ulang.");
@@ -60,12 +56,7 @@ const AdminDashboard: React.FC = () => {
   useLayoutEffect(() => {
     const el = tableWrapperRef.current;
     if (!el) return;
-    const toLeft = () => {
-      el.scrollLeft = 0;
-    };
-    requestAnimationFrame(toLeft);
-    const t = setTimeout(toLeft, 0);
-    return () => clearTimeout(t);
+    el.scrollLeft = 0;
   }, [users]);
 
   const handleLogout = () => {
@@ -82,9 +73,9 @@ const AdminDashboard: React.FC = () => {
   };
 
   const scrollRight = () => {
-      const el = tableWrapperRef.current;
-      if (!el) return;
-      el.scrollBy({ left: 220, behavior: "smooth" });
+    const el = tableWrapperRef.current;
+    if (!el) return;
+    el.scrollBy({ left: 220, behavior: "smooth" });
   };
 
   const thStyle: React.CSSProperties = {
@@ -120,15 +111,13 @@ const AdminDashboard: React.FC = () => {
         fontFamily: "tahoma, sans-serif",
         color: "#333",
         boxSizing: "border-box",
-        textAlign: "center", // ✅ Pindahkan ke sini
+        textAlign: "center",
       }}
     >
       <h1 style={{ marginBottom: 8 }}>Admin Dashboard</h1>
       <h2 style={{ marginBottom: 18 }}>Daftar Pengguna</h2>
-
       {loading && <p>⏳ Memuat data...</p>}
       {error && <p style={{ color: "red" }}>{error}</p>}
-
       <div
         className="scroll-buttons"
         style={{
@@ -154,20 +143,14 @@ const AdminDashboard: React.FC = () => {
         </button>
       </div>
 
-      <div
-        ref={tableWrapperRef}
-        className="table-wrapper"
-        style={{
-          // ✅ Tambahkan gaya ini untuk memastikan isi kontainer rata kiri
-          textAlign: 'left',
-          width: '100%',
-        }}
-      >
+      <div ref={tableWrapperRef} className="table-wrapper">
         <table
           style={{
+            minWidth: 900,
             background: "#fff",
             boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
             borderRadius: 8,
+            borderCollapse: "collapse",
           }}
         >
           <thead>
