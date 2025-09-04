@@ -1,11 +1,12 @@
 // controllers/adminController.js
 import pool from "../config/db.js"; // koneksi ke PostgreSQL (Neon)
 
+// ==================== GET ALL USERS ====================
 export const getAllUsers = async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT id, email, username, role_id, created_at, phone_number, 
-              to_char(last_login AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Jakarta', 'YYYY-MM-DD HH24:MI:SS') as last_login
+      `SELECT id, email, username, role_id, phone_number, created_at,
+              (last_login AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Jakarta') AS last_login
        FROM users
        ORDER BY created_at DESC`
     );
