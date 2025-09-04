@@ -20,10 +20,9 @@ export const register = async (req, res) => {
     const phone_number = req.body.phone_number || req.body.phone_Number || null;
 
     // cek user sudah ada?
-    const result = await pool.query(
-      "SELECT id FROM users WHERE email = $1",
-      [email]
-    );
+    const result = await pool.query("SELECT id FROM users WHERE email = $1", [
+      email,
+    ]);
     if (result.rows.length > 0) {
       return res.status(400).json({ message: "User already exists" });
     }
@@ -59,14 +58,25 @@ export const login = async (req, res) => {
       [email]
     );
 
-    if (result.rows.length === 0) return res.status(404).json({ message: "User not found" });
+    if (result.rows.length === 0)
+      return res.status(404).json({ message: "User not found" });
 
     const user = result.rows[0];
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(401).json({ message: "Invalid credentials" });
+    if (!isMatch)
+      return res.status(401).json({ message: "Invalid credentials" });
 
-    const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
+    // ✅ Update last_login
+    await pool.query("UPDATE users SET last_login = NOW() WHERE id = $1", [
+      user.id,
+    ]);
+
+    const token = jwt.sign(
+      { id: user.id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
 
     res.json({
       token,
@@ -74,8 +84,9 @@ export const login = async (req, res) => {
         id: user.id,
         username: user.username,
         email: user.email,
-        role: user.role
-      }
+        role: user.role,
+        last_login: new Date().toISOString(), // kirim juga ke frontend
+      },
     });
   } catch (error) {
     console.error("Login error:", error);
@@ -107,13 +118,25 @@ export const googleLogin = async (req, res) => {
       user = insert.rows[0];
 
       // ambil role dari tabel roles
-      const roleRes = await pool.query("SELECT name AS role FROM roles WHERE id = $1", [defaultRoleId]);
+      const roleRes = await pool.query(
+        "SELECT name AS role FROM roles WHERE id = $1",
+        [defaultRoleId]
+      );
       user.role = roleRes.rows[0].role;
     } else {
       user = result.rows[0];
     }
 
-    const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
+    // ✅ Update last_login juga untuk Google login
+    await pool.query("UPDATE users SET last_login = NOW() WHERE id = $1", [
+      user.id,
+    ]);
+
+    const token = jwt.sign(
+      { id: user.id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
 
     res.json({
       token,
@@ -121,8 +144,9 @@ export const googleLogin = async (req, res) => {
         id: user.id,
         username: user.username,
         email: user.email,
-        role: user.role
-      }
+        role: user.role,
+        last_login: new Date().toISOString(),
+      },
     });
   } catch (error) {
     console.error("Google login error:", error);
@@ -136,7 +160,10 @@ export const setPassword = async (req, res) => {
     const { email, password } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    await pool.query("UPDATE users SET password = $1 WHERE email = $2", [hashedPassword, email]);
+    await pool.query("UPDATE users SET password = $1 WHERE email = $2", [
+      hashedPassword,
+      email,
+    ]);
 
     const result = await pool.query(
       `SELECT u.id, u.username, u.email, r.name AS role
@@ -147,7 +174,11 @@ export const setPassword = async (req, res) => {
     );
 
     const user = result.rows[0];
-    const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
+    const token = jwt.sign(
+      { id: user.id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
 
     res.json({
       message: "Password set successfully",
@@ -156,8 +187,8 @@ export const setPassword = async (req, res) => {
         id: user.id,
         username: user.username,
         email: user.email,
-        role: user.role
-      }
+        role: user.role,
+      },
     });
   } catch (error) {
     console.error("Set password error:", error);
@@ -171,7 +202,9 @@ export const forgotPassword = async (req, res) => {
     const { email } = req.body;
 
     // ✅ Query PostgreSQL
-    const { rows } = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
+    const { rows } = await pool.query("SELECT * FROM users WHERE email = $1", [
+      email,
+    ]);
 
     if (rows.length === 0) {
       return res.status(404).json({ message: "Email tidak ditemukan" });
@@ -182,7 +215,9 @@ export const forgotPassword = async (req, res) => {
       return res.status(500).json({ message: "Konfigurasi server tidak lengkap" });
     }
 
-    const token = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: "1h" });
+    const token = jwt.sign({ email }, process.env.JWT_SECRET, {
+      expiresIn: "1h",
+    });
 
     // 🔗 pakai CORS_ORIGIN sebagai base URL frontend
     const resetLink = `${process.env.CORS_ORIGIN}/reset-password?token=${token}`;
