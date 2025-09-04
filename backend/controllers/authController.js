@@ -2,14 +2,20 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import pool from "../config/db.js";
-import { sendEmail } from "../utils/sendEmail.js";
-import crypto from "crypto";
 import dotenv from "dotenv";
 import { Resend } from "resend";
 dotenv.config();
 
-// Konfigurasi Resend
 const resend = new Resend(process.env.RESEND_API_KEY);
+
+// Helper: format UTC → WIB
+function toJakartaTime(utcDate) {
+  if (!utcDate) return null;
+  return new Date(utcDate).toLocaleString("id-ID", {
+    timeZone: "Asia/Jakarta",
+    hour12: false,
+  });
+}
 
 // ====================== REGISTER ======================
 export const register = async (req, res) => {
@@ -25,7 +31,7 @@ export const register = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const defaultRoleId = 2; // default role user
+    const defaultRoleId = 2;
 
     await pool.query(
       "INSERT INTO users (username, email, password, phone_number, role_id) VALUES ($1, $2, $3, $4, $5)",
@@ -61,9 +67,9 @@ export const login = async (req, res) => {
     if (!isMatch)
       return res.status(401).json({ message: "Invalid credentials" });
 
-    // ✅ Update last_login (simpan UTC, tapi return UTC+7 ke response)
+    // Update last_login (UTC di DB)
     const updated = await pool.query(
-      "UPDATE users SET last_login = NOW() WHERE id = $1 RETURNING (last_login AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Jakarta') AS last_login",
+      "UPDATE users SET last_login = NOW() WHERE id = $1 RETURNING last_login",
       [user.id]
     );
 
@@ -80,7 +86,7 @@ export const login = async (req, res) => {
         username: user.username,
         email: user.email,
         role: user.role,
-        last_login: updated.rows[0].last_login, // ✅ langsung UTC+7
+        last_login: toJakartaTime(updated.rows[0].last_login), // kirim WIB
       },
     });
   } catch (error) {
@@ -104,7 +110,7 @@ export const googleLogin = async (req, res) => {
 
     let user;
     if (result.rows.length === 0) {
-      const defaultRoleId = 2; // default role user
+      const defaultRoleId = 2;
       const insert = await pool.query(
         "INSERT INTO users (username, email, role_id) VALUES ($1, $2, $3) RETURNING id, username, email",
         [username, email, defaultRoleId]
@@ -120,9 +126,9 @@ export const googleLogin = async (req, res) => {
       user = result.rows[0];
     }
 
-    // ✅ Update last_login (simpan UTC, return UTC+7)
+    // Update last_login (UTC di DB)
     const updated = await pool.query(
-      "UPDATE users SET last_login = NOW() WHERE id = $1 RETURNING (last_login AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Jakarta') AS last_login",
+      "UPDATE users SET last_login = NOW() WHERE id = $1 RETURNING last_login",
       [user.id]
     );
 
@@ -139,7 +145,7 @@ export const googleLogin = async (req, res) => {
         username: user.username,
         email: user.email,
         role: user.role,
-        last_login: updated.rows[0].last_login, // ✅ UTC+7
+        last_login: toJakartaTime(updated.rows[0].last_login), // kirim WIB
       },
     });
   } catch (error) {
