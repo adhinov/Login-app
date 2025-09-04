@@ -89,6 +89,9 @@ const AdminDashboard: React.FC = () => {
     cursor: "pointer",
   };
 
+  // ✅ Ambil Last Login dari localStorage (disimpan saat login berhasil)
+  const lastLogin = localStorage.getItem("lastLogin");
+
   return (
     <div
       style={{
@@ -157,25 +160,33 @@ const AdminDashboard: React.FC = () => {
         Total Pengguna: <b>{users.length}</b>
       </p>
 
+      {/* ✅ Last Login + Tombol sejajar kiri-kanan */}
       <div
         style={{
           display: "flex",
-          justifyContent: "flex-end",
+          justifyContent: "space-between",
+          alignItems: "center",
           width: "100%",
           maxWidth: 900,
           margin: "12px auto 0 auto",
-          gap: 10,
         }}
       >
-        <button onClick={fetchUsers} style={buttonStyle} disabled={loading}>
-          {loading ? "Refreshing..." : "Refresh"}
-        </button>
-        <button
-          onClick={handleLogout}
-          style={{ ...buttonStyle, background: "#dc3545" }}
-        >
-          Logout
-        </button>
+        <div style={{ fontSize: "14px", color: "#555", textAlign: "left" }}>
+          Last Login:{" "}
+          {lastLogin ? new Date(lastLogin).toLocaleString() : "-"}
+        </div>
+
+        <div style={{ display: "flex", gap: 10 }}>
+          <button onClick={fetchUsers} style={buttonStyle} disabled={loading}>
+            {loading ? "Refreshing..." : "Refresh"}
+          </button>
+          <button
+            onClick={handleLogout}
+            style={{ ...buttonStyle, background: "#dc3545" }}
+          >
+            Logout
+          </button>
+        </div>
       </div>
     </div>
   );
