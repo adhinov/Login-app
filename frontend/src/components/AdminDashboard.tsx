@@ -66,18 +66,6 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
-  const scrollLeft = () => {
-    const el = tableWrapperRef.current;
-    if (!el) return;
-    el.scrollBy({ left: -220, behavior: "smooth" });
-  };
-
-  const scrollRight = () => {
-    const el = tableWrapperRef.current;
-    if (!el) return;
-    el.scrollBy({ left: 220, behavior: "smooth" });
-  };
-
   const thStyle: React.CSSProperties = {
     border: "1px solid #ddd",
     padding: "10px",

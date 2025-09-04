@@ -14,6 +14,23 @@
   border-collapse: collapse;
 }
 
+/* Atur semua cell default ke tengah */
+.table-wrapper th,
+.table-wrapper td {
+  text-align: center;
+  padding: 10px;
+  border: 1px solid #ddd;
+  white-space: nowrap;
+}
+
+/* Rata kiri khusus untuk Email (kolom ke-2) dan Username (kolom ke-3) */
+.table-wrapper th:nth-child(2),
+.table-wrapper td:nth-child(2),
+.table-wrapper th:nth-child(3),
+.table-wrapper td:nth-child(3) {
+  text-align: left;
+}
+
 @media (min-width: 580px) {
   .scroll-buttons {
     display: none;
@@ -24,7 +41,7 @@
 @media (min-width: 768px) {
   .table-wrapper {
     max-width: 900px; /* Adjust this value to your preferred max width */
-    margin: 0 auto; /* Center the table on the page */
+    margin: 0 auto;   /* Center the table on the page */
     display: block !important; /* Revert flex display for centering */
   }
 }
