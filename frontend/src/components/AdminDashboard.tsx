@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useLayoutEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import "./AdminDashboard.css"; // ✅ Pastikan ini ada
+import "./AdminDashboard.css"; // ✅ Pastikan file css ada
 
 interface User {
   id: number;
@@ -56,7 +56,7 @@ const AdminDashboard: React.FC = () => {
   useLayoutEffect(() => {
     const el = tableWrapperRef.current;
     if (!el) return;
-    el.scrollLeft = 0;
+    el.scrollLeft = 0; // ✅ otomatis mulai dari kiri
   }, [users]);
 
   const handleLogout = () => {
@@ -69,7 +69,6 @@ const AdminDashboard: React.FC = () => {
   const thStyle: React.CSSProperties = {
     border: "1px solid #ddd",
     padding: "10px",
-    textAlign: "center",
     background: "#e0e0e0",
     fontWeight: "bold",
     whiteSpace: "nowrap",
@@ -78,7 +77,6 @@ const AdminDashboard: React.FC = () => {
   const tdStyle: React.CSSProperties = {
     border: "1px solid #ddd",
     padding: "8px",
-    textAlign: "center",
     whiteSpace: "nowrap",
   };
 
@@ -106,7 +104,7 @@ const AdminDashboard: React.FC = () => {
       <h2 style={{ marginBottom: 18 }}>Daftar Pengguna</h2>
       {loading && <p>⏳ Memuat data...</p>}
       {error && <p style={{ color: "red" }}>{error}</p>}
-      
+
       <div ref={tableWrapperRef} className="table-wrapper">
         <table
           style={{
@@ -130,14 +128,18 @@ const AdminDashboard: React.FC = () => {
           <tbody>
             {users.map((u) => (
               <tr key={u.id}>
-                <td style={tdStyle}>{u.id}</td>
-                <td style={tdStyle}>{u.email}</td>
-                <td style={tdStyle}>{u.username || "-"}</td>
-                <td style={tdStyle}>{u.role}</td>
-                <td style={tdStyle}>
+                <td style={{ ...tdStyle, textAlign: "center" }}>{u.id}</td>
+                <td style={{ ...tdStyle, textAlign: "left" }}>{u.email}</td>
+                <td style={{ ...tdStyle, textAlign: "left" }}>
+                  {u.username || "-"}
+                </td>
+                <td style={{ ...tdStyle, textAlign: "center" }}>{u.role}</td>
+                <td style={{ ...tdStyle, textAlign: "center" }}>
                   {new Date(u.created_at).toLocaleDateString()}
                 </td>
-                <td style={tdStyle}>{u.phone_number || "-"}</td>
+                <td style={{ ...tdStyle, textAlign: "center" }}>
+                  {u.phone_number || "-"}
+                </td>
               </tr>
             ))}
             {users.length === 0 && !loading && (
