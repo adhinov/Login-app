@@ -10,6 +10,7 @@ interface User {
   role: string;
   created_at: string;
   phone_number?: string;
+  last_login?: string; // ✅ tambahkan
 }
 
 const AdminDashboard: React.FC = () => {
@@ -111,7 +112,7 @@ const AdminDashboard: React.FC = () => {
       <div ref={tableWrapperRef} className="table-wrapper">
         <table
           style={{
-            minWidth: 750,
+            minWidth: 850, // ✅ Lebar dinaikkan
             background: "#fff",
             boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
             borderRadius: 8,
@@ -126,6 +127,7 @@ const AdminDashboard: React.FC = () => {
               <th style={thStyle}>Role</th>
               <th style={thStyle}>Created At</th>
               <th style={thStyle}>Phone</th>
+              <th style={thStyle}>Last Login</th> {/* ✅ kolom baru */}
             </tr>
           </thead>
           <tbody>
@@ -143,11 +145,14 @@ const AdminDashboard: React.FC = () => {
                 <td style={{ ...tdStyle, textAlign: "center" }}>
                   {u.phone_number || "-"}
                 </td>
+                <td style={{ ...tdStyle, textAlign: "center" }}>
+                  {u.last_login || "-"}
+                </td>
               </tr>
             ))}
             {users.length === 0 && !loading && (
               <tr>
-                <td colSpan={6} style={{ textAlign: "center", padding: "12px" }}>
+                <td colSpan={7} style={{ textAlign: "center", padding: "12px" }}>
                   Tidak ada data pengguna.
                 </td>
               </tr>
@@ -160,7 +165,7 @@ const AdminDashboard: React.FC = () => {
         Total Pengguna: <b>{users.length}</b>
       </p>
 
-      {/* ✅ Last Login + Tombol sejajar kiri-kanan */}
+      {/* ✅ Last Login (dari localStorage) + Tombol sejajar kiri-kanan */}
       <div
         style={{
           display: "flex",
@@ -172,7 +177,7 @@ const AdminDashboard: React.FC = () => {
         }}
       >
         <div style={{ fontSize: "14px", color: "#555", textAlign: "left" }}>
-          Last Login:{" "}
+          Last Login (Anda):{" "}
           {lastLogin ? new Date(lastLogin).toLocaleString() : "-"}
         </div>
 
