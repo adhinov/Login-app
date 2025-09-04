@@ -4,7 +4,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
-import adminRoutes from "./routes/adminRoutes.js"; // ✅ tambahkan ini
+import adminRoutes from "./routes/adminRoutes.js"; 
 import pool from "./config/db.js";
 
 dotenv.config();
@@ -37,17 +37,23 @@ app.get("/", (req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
-app.use("/api/admin", adminRoutes); // ✅ pasang route admin di prefix /api/admin
+app.use("/api/admin", adminRoutes);
 
 // ==================== TEST DB CONNECTION ====================
 app.get("/api/db-check", async (req, res) => {
   try {
-    const [rows] = await pool.query("SELECT NOW() AS now");
-    res.json({ status: "ok", dbTime: rows[0].now });
+    const result = await pool.query("SELECT NOW() AS now"); // ✅ pg syntax
+    res.json({ status: "ok", dbTime: result.rows[0].now });
   } catch (error) {
     console.error("Database check failed:", error.message);
     res.status(500).json({ status: "error", message: "Database not connected" });
   }
+});
+
+// ==================== GLOBAL ERROR HANDLER ====================
+app.use((err, req, res, next) => {
+  console.error("🔥 Unhandled error:", err);
+  res.status(500).json({ status: "error", message: "Internal server error" });
 });
 
 // ==================== SERVER LISTEN ====================
