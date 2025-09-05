@@ -8,8 +8,8 @@ dotenv.config();
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-// Helper konversi waktu ke WIB
-const toJakarta = (date) => {
+// ====================== HELPER ======================
+const toJakartaTime = (date) => {
   if (!date) return null;
   return new Date(date).toLocaleString("id-ID", {
     timeZone: "Asia/Jakarta",
@@ -210,7 +210,9 @@ export const forgotPassword = async (req, res) => {
 
     if (!process.env.CORS_ORIGIN) {
       console.error("❌ CORS_ORIGIN not defined in env");
-      return res.status(500).json({ message: "Konfigurasi server tidak lengkap" });
+      return res
+        .status(500)
+        .json({ message: "Konfigurasi server tidak lengkap" });
     }
 
     const token = jwt.sign({ email }, process.env.JWT_SECRET, {
@@ -249,7 +251,9 @@ export const resetPassword = async (req, res) => {
       decoded.email,
     ]);
 
-    res.json({ message: "Password berhasil direset, silakan login dengan password baru" });
+    res.json({
+      message: "Password berhasil direset, silakan login dengan password baru",
+    });
   } catch (error) {
     console.error("Reset password error:", error.message);
     res.status(400).json({ message: "Token tidak valid atau sudah kadaluarsa" });
