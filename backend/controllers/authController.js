@@ -42,9 +42,7 @@ export const login = async (req, res) => {
     const { email, password } = req.body;
 
     const result = await pool.query(
-      `SELECT u.id, u.username, u.email, u.password, 
-              (u.last_login AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Jakarta') AS last_login,
-              r.name AS role
+      `SELECT u.id, u.username, u.email, u.password, u.last_login, r.name AS role
        FROM users u
        JOIN roles r ON u.role_id = r.id
        WHERE u.email = $1`,
@@ -60,9 +58,9 @@ export const login = async (req, res) => {
     if (!isMatch)
       return res.status(401).json({ message: "Invalid credentials" });
 
-    // Update last_login langsung WIB
+    // Update last_login → langsung UTC+7
     const updated = await pool.query(
-      "UPDATE users SET last_login = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Jakarta') WHERE id = $1 RETURNING last_login",
+      "UPDATE users SET last_login = NOW() + INTERVAL '7 hours' WHERE id = $1 RETURNING last_login",
       [user.id]
     );
 
@@ -79,7 +77,7 @@ export const login = async (req, res) => {
         username: user.username,
         email: user.email,
         role: user.role,
-        last_login: updated.rows[0].last_login, // sudah WIB dari DB
+        last_login: updated.rows[0].last_login,
       },
     });
   } catch (error) {
@@ -94,9 +92,7 @@ export const googleLogin = async (req, res) => {
     const { email, username } = req.body;
 
     let result = await pool.query(
-      `SELECT u.id, u.username, u.email, 
-              (u.last_login AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Jakarta') AS last_login,
-              r.name AS role
+      `SELECT u.id, u.username, u.email, u.last_login, r.name AS role
        FROM users u
        JOIN roles r ON u.role_id = r.id
        WHERE u.email = $1`,
@@ -121,9 +117,9 @@ export const googleLogin = async (req, res) => {
       user = result.rows[0];
     }
 
-    // Update last_login langsung WIB
+    // Update last_login → langsung UTC+7
     const updated = await pool.query(
-      "UPDATE users SET last_login = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Jakarta') WHERE id = $1 RETURNING last_login",
+      "UPDATE users SET last_login = NOW() + INTERVAL '7 hours' WHERE id = $1 RETURNING last_login",
       [user.id]
     );
 
@@ -140,7 +136,7 @@ export const googleLogin = async (req, res) => {
         username: user.username,
         email: user.email,
         role: user.role,
-        last_login: updated.rows[0].last_login, // sudah WIB
+        last_login: updated.rows[0].last_login,
       },
     });
   } catch (error) {
