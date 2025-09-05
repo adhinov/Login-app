@@ -8,14 +8,14 @@ dotenv.config();
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-// Helper: format UTC → WIB
-function toJakartaTime(utcDate) {
-  if (!utcDate) return null;
-  return new Date(utcDate).toLocaleString("id-ID", {
+// Helper konversi waktu ke WIB
+const toJakarta = (date) => {
+  if (!date) return null;
+  return new Date(date).toLocaleString("id-ID", {
     timeZone: "Asia/Jakarta",
     hour12: false,
   });
-}
+};
 
 // ====================== REGISTER ======================
 export const register = async (req, res) => {
