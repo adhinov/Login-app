@@ -43,6 +43,9 @@ const Login = () => {
 
         localStorage.setItem("role", userRole);
 
+        // ✅ Simpan waktu login terakhir (ISO string)
+        localStorage.setItem("lastLogin", new Date().toISOString());
+
         console.log("✅ [DEBUG] Token tersimpan:", token);
         console.log("✅ [DEBUG] User tersimpan:", user);
         console.log("✅ [DEBUG] Role terdeteksi:", userRole);
