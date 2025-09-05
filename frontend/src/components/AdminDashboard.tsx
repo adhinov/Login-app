@@ -10,7 +10,6 @@ interface User {
   role: string;
   created_at: string;
   phone_number?: string;
-  last_login?: string; // ✅ tambahkan
 }
 
 const AdminDashboard: React.FC = () => {
@@ -90,16 +89,8 @@ const AdminDashboard: React.FC = () => {
     cursor: "pointer",
   };
 
-  // ✅ Ambil Last Login dari localStorage (disimpan saat login berhasil)
+  // ✅ Ambil Last Login admin dari localStorage (diset saat login berhasil)
   const lastLogin = localStorage.getItem("lastLogin");
-
-  // ✅ Helper untuk format tanggal
-  const formatDateTime = (dateString?: string) => {
-    if (!dateString) return "-";
-    return new Date(dateString).toLocaleString("id-ID", {
-      timeZone: "Asia/Jakarta",
-    });
-  };
 
   return (
     <div
@@ -120,7 +111,7 @@ const AdminDashboard: React.FC = () => {
       <div ref={tableWrapperRef} className="table-wrapper">
         <table
           style={{
-            minWidth: 950,
+            minWidth: 850,
             background: "#fff",
             boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
             borderRadius: 8,
@@ -135,7 +126,6 @@ const AdminDashboard: React.FC = () => {
               <th style={thStyle}>Role</th>
               <th style={thStyle}>Created At</th>
               <th style={thStyle}>Phone</th>
-              <th style={thStyle}>Last Login</th>
             </tr>
           </thead>
           <tbody>
@@ -148,19 +138,18 @@ const AdminDashboard: React.FC = () => {
                 </td>
                 <td style={{ ...tdStyle, textAlign: "center" }}>{u.role}</td>
                 <td style={{ ...tdStyle, textAlign: "center" }}>
-                  {formatDateTime(u.created_at)}
+                  {new Date(u.created_at).toLocaleDateString("id-ID", {
+                    timeZone: "Asia/Jakarta",
+                  })}
                 </td>
                 <td style={{ ...tdStyle, textAlign: "center" }}>
                   {u.phone_number || "-"}
-                </td>
-                <td style={{ ...tdStyle, textAlign: "center" }}>
-                  {formatDateTime(u.last_login)}
                 </td>
               </tr>
             ))}
             {users.length === 0 && !loading && (
               <tr>
-                <td colSpan={7} style={{ textAlign: "center", padding: "12px" }}>
+                <td colSpan={6} style={{ textAlign: "center", padding: "12px" }}>
                   Tidak ada data pengguna.
                 </td>
               </tr>
@@ -179,10 +168,11 @@ const AdminDashboard: React.FC = () => {
           justifyContent: "space-between",
           alignItems: "center",
           width: "100%",
-          maxWidth: 950,
+          maxWidth: 850,
           margin: "12px auto 0 auto",
         }}
       >
+        {/* ✅ Last Login Admin di kiri bawah */}
         <div style={{ fontSize: "14px", color: "#555", textAlign: "left" }}>
           Last Login (Anda):{" "}
           {lastLogin
