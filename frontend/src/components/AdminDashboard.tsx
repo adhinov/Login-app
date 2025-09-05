@@ -89,8 +89,8 @@ const AdminDashboard: React.FC = () => {
     cursor: "pointer",
   };
 
-  // ✅ Ambil Last Login admin dari localStorage (diset saat login berhasil)
-  const lastLogin = localStorage.getItem("lastLogin");
+  // ✅ Ambil Previous Login admin (login sebelum yang sekarang)
+  const previousLogin = localStorage.getItem("previousLogin");
 
   return (
     <div
@@ -175,8 +175,8 @@ const AdminDashboard: React.FC = () => {
         {/* ✅ Last Login Admin di kiri bawah */}
         <div style={{ fontSize: "14px", color: "#555", textAlign: "left" }}>
           Last Login (Anda):{" "}
-          {lastLogin
-            ? new Date(lastLogin).toLocaleString("id-ID", {
+          {previousLogin
+            ? new Date(previousLogin).toLocaleString("id-ID", {
                 timeZone: "Asia/Jakarta",
               })
             : "-"}

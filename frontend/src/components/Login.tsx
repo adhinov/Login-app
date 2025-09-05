@@ -15,7 +15,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // ================= LOGIN BIASA =================
+  // ================= LOGIN =================
   const handleLogin = async () => {
     setLoading(true);
     setMessage("");
@@ -43,7 +43,13 @@ const Login = () => {
 
         localStorage.setItem("role", userRole);
 
-        // ✅ Simpan waktu login terakhir (ISO string)
+        // ✅ Geser lastLogin ke previousLogin (hanya jika ada data lama)
+        const oldLastLogin = localStorage.getItem("lastLogin");
+        if (oldLastLogin) {
+          localStorage.setItem("previousLogin", oldLastLogin);
+        }
+
+        // ✅ Simpan login saat ini sebagai lastLogin baru
         localStorage.setItem("lastLogin", new Date().toISOString());
 
         console.log("✅ [DEBUG] Token tersimpan:", token);
