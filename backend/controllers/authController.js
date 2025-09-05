@@ -8,15 +8,6 @@ dotenv.config();
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-// ====================== HELPER ======================
-const toJakartaTime = (date) => {
-  if (!date) return null;
-  return new Date(date).toLocaleString("id-ID", {
-    timeZone: "Asia/Jakarta",
-    hour12: false,
-  });
-};
-
 // ====================== REGISTER ======================
 export const register = async (req, res) => {
   try {
@@ -51,7 +42,9 @@ export const login = async (req, res) => {
     const { email, password } = req.body;
 
     const result = await pool.query(
-      `SELECT u.id, u.username, u.email, u.password, u.last_login, r.name AS role
+      `SELECT u.id, u.username, u.email, u.password, 
+              (u.last_login AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Jakarta') AS last_login,
+              r.name AS role
        FROM users u
        JOIN roles r ON u.role_id = r.id
        WHERE u.email = $1`,
@@ -67,9 +60,9 @@ export const login = async (req, res) => {
     if (!isMatch)
       return res.status(401).json({ message: "Invalid credentials" });
 
-    // Update last_login (UTC di DB)
+    // Update last_login langsung WIB
     const updated = await pool.query(
-      "UPDATE users SET last_login = NOW() WHERE id = $1 RETURNING last_login",
+      "UPDATE users SET last_login = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Jakarta') WHERE id = $1 RETURNING last_login",
       [user.id]
     );
 
@@ -86,7 +79,7 @@ export const login = async (req, res) => {
         username: user.username,
         email: user.email,
         role: user.role,
-        last_login: toJakartaTime(updated.rows[0].last_login), // kirim WIB
+        last_login: updated.rows[0].last_login, // sudah WIB dari DB
       },
     });
   } catch (error) {
@@ -101,7 +94,9 @@ export const googleLogin = async (req, res) => {
     const { email, username } = req.body;
 
     let result = await pool.query(
-      `SELECT u.id, u.username, u.email, u.last_login, r.name AS role
+      `SELECT u.id, u.username, u.email, 
+              (u.last_login AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Jakarta') AS last_login,
+              r.name AS role
        FROM users u
        JOIN roles r ON u.role_id = r.id
        WHERE u.email = $1`,
@@ -126,9 +121,9 @@ export const googleLogin = async (req, res) => {
       user = result.rows[0];
     }
 
-    // Update last_login (UTC di DB)
+    // Update last_login langsung WIB
     const updated = await pool.query(
-      "UPDATE users SET last_login = NOW() WHERE id = $1 RETURNING last_login",
+      "UPDATE users SET last_login = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Jakarta') WHERE id = $1 RETURNING last_login",
       [user.id]
     );
 
@@ -145,7 +140,7 @@ export const googleLogin = async (req, res) => {
         username: user.username,
         email: user.email,
         role: user.role,
-        last_login: toJakartaTime(updated.rows[0].last_login), // kirim WIB
+        last_login: updated.rows[0].last_login, // sudah WIB
       },
     });
   } catch (error) {

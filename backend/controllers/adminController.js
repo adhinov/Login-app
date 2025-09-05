@@ -1,8 +1,8 @@
 // controllers/adminController.js
 import pool from "../config/db.js";
 
-// Helper untuk konversi ke Asia/Jakarta
-const toJakarta = (date) => {
+// ====================== Helper ======================
+const toJakartaTime = (date) => {
   if (!date) return null;
   return new Date(date).toLocaleString("id-ID", {
     timeZone: "Asia/Jakarta",
@@ -10,24 +10,64 @@ const toJakarta = (date) => {
   });
 };
 
+// ====================== GET ALL USERS ======================
 export const getAllUsers = async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT id, email, username, role_id, created_at, phone_number, last_login
-       FROM users
-       ORDER BY created_at DESC`
+      `SELECT u.id, u.username, u.email, u.role_id, r.name AS role,
+              u.created_at, u.last_login
+       FROM users u
+       JOIN roles r ON u.role_id = r.id
+       ORDER BY u.id ASC`
     );
 
-    // Convert tanggal ke WIB
-    const users = result.rows.map((user) => ({
-      ...user,
-      created_at: toJakarta(user.created_at),
-      last_login: toJakarta(user.last_login),
+    const users = result.rows.map((u) => ({
+      id: u.id,
+      username: u.username,
+      email: u.email,
+      role: u.role,
+      created_at: toJakartaTime(u.created_at),
+      last_login: toJakartaTime(u.last_login),
     }));
 
     res.json(users);
   } catch (error) {
-    console.error("❌ Error ambil users:", error);
-    res.status(500).json({ message: "Terjadi kesalahan saat ambil data users" });
+    console.error("Get all users error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// ====================== GET USER BY ID ======================
+export const getUserById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const result = await pool.query(
+      `SELECT u.id, u.username, u.email, u.role_id, r.name AS role,
+              u.created_at, u.last_login
+       FROM users u
+       JOIN roles r ON u.role_id = r.id
+       WHERE u.id = $1`,
+      [id]
+    );
+
+    if (result.rows.length === 0)
+      return res.status(404).json({ message: "User not found" });
+
+    const u = result.rows[0];
+
+    const user = {
+      id: u.id,
+      username: u.username,
+      email: u.email,
+      role: u.role,
+      created_at: toJakartaTime(u.created_at),
+      last_login: toJakartaTime(u.last_login),
+    };
+
+    res.json(user);
+  } catch (error) {
+    console.error("Get user by id error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
