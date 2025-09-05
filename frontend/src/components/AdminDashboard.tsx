@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useLayoutEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import "./AdminDashboard.css"; // ✅ Pastikan file css ada
+import "./AdminDashboard.css";
 
 interface User {
   id: number;
@@ -57,7 +57,7 @@ const AdminDashboard: React.FC = () => {
   useLayoutEffect(() => {
     const el = tableWrapperRef.current;
     if (!el) return;
-    el.scrollLeft = 0; // ✅ otomatis mulai dari kiri
+    el.scrollLeft = 0;
   }, [users]);
 
   const handleLogout = () => {
@@ -93,6 +93,14 @@ const AdminDashboard: React.FC = () => {
   // ✅ Ambil Last Login dari localStorage (disimpan saat login berhasil)
   const lastLogin = localStorage.getItem("lastLogin");
 
+  // ✅ Helper untuk format tanggal
+  const formatDateTime = (dateString?: string) => {
+    if (!dateString) return "-";
+    return new Date(dateString).toLocaleString("id-ID", {
+      timeZone: "Asia/Jakarta",
+    });
+  };
+
   return (
     <div
       style={{
@@ -112,7 +120,7 @@ const AdminDashboard: React.FC = () => {
       <div ref={tableWrapperRef} className="table-wrapper">
         <table
           style={{
-            minWidth: 850, // ✅ Lebar dinaikkan
+            minWidth: 950,
             background: "#fff",
             boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
             borderRadius: 8,
@@ -127,7 +135,7 @@ const AdminDashboard: React.FC = () => {
               <th style={thStyle}>Role</th>
               <th style={thStyle}>Created At</th>
               <th style={thStyle}>Phone</th>
-              <th style={thStyle}>Last Login</th> {/* ✅ kolom baru */}
+              <th style={thStyle}>Last Login</th>
             </tr>
           </thead>
           <tbody>
@@ -140,13 +148,13 @@ const AdminDashboard: React.FC = () => {
                 </td>
                 <td style={{ ...tdStyle, textAlign: "center" }}>{u.role}</td>
                 <td style={{ ...tdStyle, textAlign: "center" }}>
-                  {new Date(u.created_at).toLocaleDateString()}
+                  {formatDateTime(u.created_at)}
                 </td>
                 <td style={{ ...tdStyle, textAlign: "center" }}>
                   {u.phone_number || "-"}
                 </td>
                 <td style={{ ...tdStyle, textAlign: "center" }}>
-                  {u.last_login || "-"}
+                  {formatDateTime(u.last_login)}
                 </td>
               </tr>
             ))}
@@ -165,20 +173,23 @@ const AdminDashboard: React.FC = () => {
         Total Pengguna: <b>{users.length}</b>
       </p>
 
-      {/* ✅ Last Login (dari localStorage) + Tombol sejajar kiri-kanan */}
       <div
         style={{
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
           width: "100%",
-          maxWidth: 900,
+          maxWidth: 950,
           margin: "12px auto 0 auto",
         }}
       >
         <div style={{ fontSize: "14px", color: "#555", textAlign: "left" }}>
           Last Login (Anda):{" "}
-          {lastLogin ? new Date(lastLogin).toLocaleString() : "-"}
+          {lastLogin
+            ? new Date(lastLogin).toLocaleString("id-ID", {
+                timeZone: "Asia/Jakarta",
+              })
+            : "-"}
         </div>
 
         <div style={{ display: "flex", gap: 10 }}>
