@@ -3,7 +3,7 @@ import { useState } from "react";
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import axios, { type AxiosResponse } from "axios";
-import "./FormStyles.css";
+import "./global.css";
 
 const API_URL = import.meta.env.VITE_API_URL;
 

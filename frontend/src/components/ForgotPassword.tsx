@@ -2,7 +2,7 @@ import { useState } from "react";
 import { FaEnvelope } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import axios, { AxiosError } from "axios";
-import "./FormStyles.css";
+import "./global.css";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");

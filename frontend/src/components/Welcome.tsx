@@ -1,7 +1,7 @@
 // src/components/Welcome.tsx
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import "./Welcome.css";
+import "./global.css";
 
 const Welcome: React.FC = () => {
   const location = useLocation();

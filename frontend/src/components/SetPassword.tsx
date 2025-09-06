@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import axios, { AxiosError } from "axios";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
-import "./FormStyles.css";
+import "./global.css";
 import { FaEnvelope, FaLock } from "react-icons/fa";
 
 const BASE_URL = import.meta.env.VITE_API_URL;

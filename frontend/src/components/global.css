@@ -1,15 +1,15 @@
-/* src/pages/FormStyles.css */
-
+/* ================= GLOBAL BASE ================= */
 html, body, #root {
   margin: 0;
   padding: 0;
   height: 100%;
   background-color: #b5b5b6;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif, Arial;
-  color: #d8d8d8; /* ✅ Menambahkan warna teks default untuk seluruh aplikasi */
+  color: #d8d8d8;
 }
 
-/* Container utama agar form bisa ditengah */
+/* ================= FORM STYLES ================= */
+/* Mengatur Login, Signup, ForgotPassword, ResetPassword */
 .form-container {
   display: flex;
   justify-content: center;
@@ -20,7 +20,6 @@ html, body, #root {
   box-sizing: border-box;
 }
 
-/* Box form */
 .form-box {
   background-color: #1e293b;
   padding: 2rem;
@@ -30,7 +29,7 @@ html, body, #root {
   width: 100%;
   max-width: 300px;
   box-sizing: border-box;
-  color: #d8d8d8; /* ✅ Pastikan warna teks di dalam form box terang */
+  color: #d8d8d8;
 }
 
 .form-title {
@@ -74,8 +73,8 @@ html, body, #root {
   padding-left: 0.5rem;
   font-size: 0.9rem;
   outline: none;
-  width: 100%; /* ✅ Tambahkan ini untuk memastikan input mengisi lebar kontainer */
-  box-sizing: border-box; /* ✅ Pastikan ini ada agar padding tidak menambah lebar */
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .input-icon {
@@ -100,9 +99,6 @@ html, body, #root {
   font-weight: bold;
   cursor: pointer;
   transition: background 0.3s ease;
-}
-
-.form-button {
   background-color: rgb(72, 212, 33);
   color: rgb(255, 255, 255);
 }
@@ -115,7 +111,7 @@ html, body, #root {
   text-align: center;
   font-size: 0.85rem;
   margin-top: 0.9rem;
-  color: #d8d8d8; /* ✅ Tambahkan warna teks yang sesuai */
+  color: #d8d8d8;
 }
 
 .link-blue {
@@ -173,8 +169,8 @@ html, body, #root {
   margin: 15px auto 0;
   cursor: pointer;
   transition: background 0.3s;
-  width: 100%; /* ✅ Gunakan lebar penuh agar responsif */
-  max-width: 190px; /* ✅ Batasi lebar di layar besar */
+  width: 100%;
+  max-width: 190px;
 }
 
 .google-button:hover {
@@ -192,7 +188,6 @@ html, body, #root {
   font-size: 12px;
 }
 
-/* Notifikasi sukses berkedip (tanpa kotak background) */
 .success-blink {
   margin-top: 8px;
   color: #ffc107;
@@ -209,14 +204,12 @@ html, body, #root {
   font-size: 16px;
 }
 
-/* Animasi berkedip */
 @keyframes blink {
   0% { opacity: 1; }
   50% { opacity: 0.3; }
   100% { opacity: 1; }
 }
 
-/* Modal overlay */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -230,7 +223,6 @@ html, body, #root {
   z-index: 999;
 }
 
-/* Modal box */
 .modal-box {
   background: #fff;
   color: #333;
@@ -238,18 +230,16 @@ html, body, #root {
   border-radius: 12px;
   text-align: center;
   max-width: 400px;
-  width: 100%; /* ✅ Gunakan 100% agar responsif */
+  width: 100%;
   box-shadow: 0px 4px 12px rgba(0,0,0,0.2);
   animation: fadeIn 0.3s ease-in-out;
 }
 
-/* Modal title */
 .modal-box h3 {
   margin-bottom: 10px;
   color: #16a34a;
 }
 
-/* Modal button */
 .modal-button {
   margin-top: 15px;
   padding: 8px 20px;
@@ -270,19 +260,120 @@ html, body, #root {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Responsif untuk form agar tidak melebar di HP */
 @media (max-width: 480px) {
   .form-box {
-    max-width: 320px; /* ✅ Batasi lebar maksimal di layar HP */
-    padding: 1.2rem;  /* ✅ Kurangi padding supaya compact */
+    max-width: 320px;
+    padding: 1.2rem;
   }
 
   .form-title {
-    font-size: 1.4rem; /* ✅ Kecilkan judul di layar HP */
+    font-size: 1.4rem;
   }
 
   .form-button {
     font-size: 0.9rem;
     padding: 0.45rem;
   }
+}
+
+/* ================= ADMIN DASHBOARD ================= */
+.table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  scroll-behavior: smooth;
+  width: 100%;
+  display: flex !important;
+  justify-content: flex-start !important;
+}
+
+.table-wrapper table {
+  min-width: 300px;
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table-wrapper th,
+.table-wrapper td {
+  text-align: center;
+  padding: 10px;
+  border: 1px solid #ddd;
+  white-space: nowrap;
+}
+
+.table-wrapper th:nth-child(2),
+.table-wrapper td:nth-child(2),
+.table-wrapper th:nth-child(3),
+.table-wrapper td:nth-child(3) {
+  text-align: left !important;
+}
+
+@media (min-width: 580px) {
+  .scroll-buttons {
+    display: none;
+  }
+}
+
+@media (min-width: 768px) {
+  .table-wrapper {
+    max-width: 900px;
+    margin: 0 auto;
+    display: block !important;
+  }
+}
+
+/* ================= WELCOME PAGE ================= */
+.welcome-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #b5b5b6;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #e1ff00;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.welcome-box {
+  background-color: #1e293b;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  max-width: 400px;
+  width: 100%;
+}
+
+.welcome-box h1 {
+  margin-bottom: 20px;
+  font-size: 26px;
+  color: #60a5fa;
+}
+
+.welcome-box p {
+  font-size: 16px;
+  margin-bottom: 20px;
+}
+
+.welcome-box button {
+  background-color: #0048bc;
+  border: none;
+  padding: 10px 20px;
+  color: white;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  width: 100%;
+}
+
+.welcome-box button:hover {
+  background-color: #eb2525;
+}
+
+.error-message {
+  color: red;
+  font-size: 13px;
+  margin-top: 4px;
 }

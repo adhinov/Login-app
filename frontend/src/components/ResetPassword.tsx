@@ -2,7 +2,7 @@ import { useState } from "react";
 import { FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
 import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import axios, { AxiosError } from "axios";
-import "./FormStyles.css";
+import "./global.css";
 
 const ResetPassword = () => {
   const [searchParams] = useSearchParams();
