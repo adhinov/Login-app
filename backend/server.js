@@ -4,7 +4,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
-import adminRoutes from "./routes/adminRoutes.js"; 
+import adminRoutes from "./routes/adminRoutes.js";
 import pool from "./config/db.js";
 
 dotenv.config();
@@ -12,13 +12,19 @@ const app = express();
 
 // ==================== MIDDLEWARE ====================
 
-// Izinkan akses dari FE Vercel + localhost
+// ✅ Allowed origins dari .env (support multiple origins, dipisah koma)
+const allowedOrigins = (process.env.CORS_ORIGIN || "").split(",").map(o => o.trim());
+
 app.use(
   cors({
-    origin: [
-      "https://login-app-64w3.vercel.app", // FE Vercel
-      "http://localhost:5173",             // local dev FE
-    ],
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.error("❌ CORS blocked origin:", origin);
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
@@ -42,7 +48,7 @@ app.use("/api/admin", adminRoutes);
 // ==================== TEST DB CONNECTION ====================
 app.get("/api/db-check", async (req, res) => {
   try {
-    const result = await pool.query("SELECT NOW() AS now"); // ✅ pg syntax
+    const result = await pool.query("SELECT NOW() AS now"); // ✅ PostgreSQL syntax
     res.json({ status: "ok", dbTime: result.rows[0].now });
   } catch (error) {
     console.error("Database check failed:", error.message);
