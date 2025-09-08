@@ -4,6 +4,8 @@ import jwt from "jsonwebtoken";
 import pool from "../config/db.js";
 import dotenv from "dotenv";
 import { Resend } from "resend";
+import admin from "../config/firebaseAdmin.js";
+
 dotenv.config();
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -14,6 +16,7 @@ export const register = async (req, res) => {
     const { username, email, password } = req.body;
     const phone_number = req.body.phone_number || req.body.phone_Number || null;
 
+    // Cek user sudah ada atau belum
     const result = await pool.query("SELECT id FROM users WHERE email = $1", [
       email,
     ]);
@@ -22,7 +25,7 @@ export const register = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const defaultRoleId = 2;
+    const defaultRoleId = 2; // default = user
 
     await pool.query(
       "INSERT INTO users (username, email, password, phone_number, role_id) VALUES ($1, $2, $3, $4, $5)",
@@ -58,9 +61,12 @@ export const login = async (req, res) => {
     if (!isMatch)
       return res.status(401).json({ message: "Invalid credentials" });
 
-    // Update last_login → langsung UTC+7
-    const updated = await pool.query(
-      "UPDATE users SET last_login = NOW() + INTERVAL '7 hours' WHERE id = $1 RETURNING last_login",
+    // Simpan last_login lama
+    const lastLoginBefore = user.last_login;
+
+    // Update last_login ke waktu sekarang (UTC+7)
+    await pool.query(
+      "UPDATE users SET last_login = NOW() + INTERVAL '7 hours' WHERE id = $1",
       [user.id]
     );
 
@@ -77,7 +83,7 @@ export const login = async (req, res) => {
         username: user.username,
         email: user.email,
         role: user.role,
-        last_login: updated.rows[0].last_login,
+        last_login: lastLoginBefore,
       },
     });
   } catch (error) {
@@ -89,7 +95,14 @@ export const login = async (req, res) => {
 // ====================== GOOGLE LOGIN ======================
 export const googleLogin = async (req, res) => {
   try {
-    const { email, username } = req.body;
+    const { token } = req.body;
+    if (!token) {
+      return res.status(400).json({ message: "Token not provided" });
+    }
+
+    // ✅ Verifikasi ID Token dari Firebase
+    const decoded = await admin.auth().verifyIdToken(token);
+    const { email, name } = decoded;
 
     let result = await pool.query(
       `SELECT u.id, u.username, u.email, u.last_login, r.name AS role
@@ -101,10 +114,11 @@ export const googleLogin = async (req, res) => {
 
     let user;
     if (result.rows.length === 0) {
+      // User baru → simpan ke DB
       const defaultRoleId = 2;
       const insert = await pool.query(
         "INSERT INTO users (username, email, role_id) VALUES ($1, $2, $3) RETURNING id, username, email",
-        [username, email, defaultRoleId]
+        [name || email.split("@")[0], email, defaultRoleId]
       );
       user = insert.rows[0];
 
@@ -117,26 +131,27 @@ export const googleLogin = async (req, res) => {
       user = result.rows[0];
     }
 
-    // Update last_login → langsung UTC+7
-    const updated = await pool.query(
-      "UPDATE users SET last_login = NOW() + INTERVAL '7 hours' WHERE id = $1 RETURNING last_login",
+    const lastLoginBefore = user.last_login;
+
+    await pool.query(
+      "UPDATE users SET last_login = NOW() + INTERVAL '7 hours' WHERE id = $1",
       [user.id]
     );
 
-    const token = jwt.sign(
+    const jwtToken = jwt.sign(
       { id: user.id, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
 
     res.json({
-      token,
+      token: jwtToken,
       user: {
         id: user.id,
         username: user.username,
         email: user.email,
         role: user.role,
-        last_login: updated.rows[0].last_login,
+        last_login: lastLoginBefore,
       },
     });
   } catch (error) {
