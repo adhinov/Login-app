@@ -2,23 +2,31 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
-import pkg from "morgan"; // ✅ fallback import
 import pool from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 
 dotenv.config();
 
-const morgan = pkg.default || pkg; // ✅ handle ESM/CommonJS export
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 // ==================== MIDDLEWARE ====================
 app.use(express.json());
-app.use(morgan("dev"));
+
+// ✅ import morgan secara aman (ESM friendly + Railway compatible)
+let morganFn;
+try {
+  const morganPkg = await import("morgan");
+  morganFn = morganPkg.default || morganPkg;
+  app.use(morganFn("dev"));
+  console.log("✅ Morgan logger enabled");
+} catch (err) {
+  console.warn("⚠️ Morgan not available, skipping logger");
+}
 
 // ✅ CORS setup (allow multiple origins)
 const allowedOrigins = [
-  process.env.CORS_ORIGIN, // vercel
+  process.env.CORS_ORIGIN,  // vercel
   process.env.FRONTEND_URL, // localhost
 ];
 
