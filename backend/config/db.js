@@ -33,5 +33,5 @@ pool.on("error", (err) => {
   }
 })();
 
-// ✅ Export dengan named export
-export { pool };
+// ✅ default export pool (biar controller bisa `import pool from ...`)
+export default pool;

@@ -2,26 +2,34 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import { pool } from "./config/db.js";  // ✅ pakai named import
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
+import pool from "./config/db.js"; // ✅ default export pool
 
 dotenv.config();
 const app = express();
 
 // ==================== MIDDLEWARE ====================
+
+// Izinkan akses dari FE Vercel + localhost
 app.use(
   cors({
     origin: [
       "https://login-app-64w3.vercel.app", // FE Vercel
-      "http://localhost:5173",             // local dev FE
+      "http://localhost:5173",             // Local dev
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   })
 );
+
+// ✅ Tambahkan logging untuk debugging CORS
+app.use((req, res, next) => {
+  console.log("🌍 Request from origin:", req.headers.origin);
+  next();
+});
 
 app.use(express.json());
 
