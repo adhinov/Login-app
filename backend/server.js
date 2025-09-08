@@ -1,69 +1,71 @@
 // backend/server.js
 import express from "express";
-import cors from "cors";
 import dotenv from "dotenv";
+import cors from "cors";
+import morgan from "morgan";
+import pool from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
-import userRoutes from "./routes/userRoutes.js";
-import adminRoutes from "./routes/adminRoutes.js";
-import pool from "./config/db.js"; // ✅ default export pool
 
 dotenv.config();
+
 const app = express();
+const PORT = process.env.PORT || 5000;
 
 // ==================== MIDDLEWARE ====================
+app.use(express.json());
+app.use(morgan("dev"));
 
-// Izinkan akses dari FE Vercel + localhost
+// ✅ CORS setup (allow multiple origins)
+const allowedOrigins = [
+  process.env.CORS_ORIGIN, // vercel
+  process.env.FRONTEND_URL, // localhost
+];
+
 app.use(
   cors({
-    origin: [
-      "https://login-app-64w3.vercel.app", // FE Vercel
-      "http://localhost:5173",             // Local dev
-    ],
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true); // allow curl/postman
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.warn("❌ Blocked by CORS:", origin);
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   })
 );
 
-// ✅ Tambahkan logging untuk debugging CORS
-app.use((req, res, next) => {
-  console.log("🌍 Request from origin:", req.headers.origin);
-  next();
-});
-
-app.use(express.json());
-
 // ==================== ROUTES ====================
-app.get("/", (req, res) => {
+
+// ✅ Debug route untuk cek origin
+app.get("/api/debug/cors", (req, res) => {
   res.json({
-    status: "ok",
-    message: "Backend API is running ✅",
+    message: "CORS debug endpoint",
+    origin: req.headers.origin || "no-origin",
+    allowedOrigins,
   });
 });
 
+// Auth routes
 app.use("/api/auth", authRoutes);
-app.use("/api/users", userRoutes);
-app.use("/api/admin", adminRoutes);
 
-// ==================== TEST DB CONNECTION ====================
-app.get("/api/db-check", async (req, res) => {
-  try {
-    const result = await pool.query("SELECT NOW() AS now");
-    res.json({ status: "ok", dbTime: result.rows[0].now });
-  } catch (error) {
-    console.error("Database check failed:", error.message);
-    res.status(500).json({ status: "error", message: "Database not connected" });
-  }
+// Default route
+app.get("/", (req, res) => {
+  res.send("✅ Backend API is running...");
 });
 
-// ==================== GLOBAL ERROR HANDLER ====================
-app.use((err, req, res, next) => {
-  console.error("🔥 Unhandled error:", err);
-  res.status(500).json({ status: "error", message: "Internal server error" });
-});
-
-// ==================== SERVER LISTEN ====================
-const PORT = process.env.PORT || 5000;
+// ==================== START SERVER ====================
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
+
+// ✅ Test DB koneksi
+(async () => {
+  try {
+    await pool.query("SELECT NOW()");
+    console.log("✅ PostgreSQL connected successfully");
+  } catch (err) {
+    console.error("❌ Database connection error:", err.message);
+  }
+})();
