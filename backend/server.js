@@ -5,7 +5,8 @@ import dotenv from "dotenv";
 import morgan from "morgan";
 import pkg from "pg";
 import admin from "firebase-admin";
-import authRoutes from "./routes/authRoutes.js"; // aktifkan route auth
+
+import authRoutes from "./routes/authRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 
 // =============== CONFIG ENV ===============
@@ -15,7 +16,11 @@ const PORT = process.env.PORT || 8080;
 
 // =============== FIREBASE ADMIN ===============
 try {
-  if (!process.env.FIREBASE_PROJECT_ID || !process.env.FIREBASE_CLIENT_EMAIL || !process.env.FIREBASE_PRIVATE_KEY) {
+  if (
+    !process.env.FIREBASE_PROJECT_ID ||
+    !process.env.FIREBASE_CLIENT_EMAIL ||
+    !process.env.FIREBASE_PRIVATE_KEY
+  ) {
     console.warn("⚠️ Firebase env vars missing, skipping Firebase Admin init");
   } else if (!admin.apps.length) {
     admin.initializeApp({
@@ -73,12 +78,18 @@ pool
     console.log("✅ PostgreSQL connected successfully");
     client.release();
   })
-  .catch((err) => console.error("❌ PostgreSQL connection error:", err.message));
+  .catch((err) =>
+    console.error("❌ PostgreSQL connection error:", err.message)
+  );
 
 // =============== ROUTES ===============
+
 // Health check endpoint
 app.get("/api/health", (req, res) => {
-  res.status(200).json({ status: "ok", message: "✅ Backend API is running..." });
+  res.status(200).json({
+    status: "ok",
+    message: "✅ Backend API is running...",
+  });
 });
 
 // Debug CORS endpoint
@@ -92,6 +103,9 @@ app.get("/api/debug/cors", (req, res) => {
 
 // Auth routes
 app.use("/api/auth", authRoutes);
+
+// Admin routes (harus sebelum fallback 404)
+app.use("/api/admin", adminRoutes);
 
 // Root route
 app.get("/", (req, res) => {
@@ -109,11 +123,9 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: "Internal Server Error" });
 });
 
-app.use("/api/admin", adminRoutes);
-
 // =============== START SERVER ===============
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
 
-export default app; // biar bisa dipakai untuk testing (opsional)
+export default app; // biar bisa dipakai untuk testing
