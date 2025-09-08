@@ -33,4 +33,5 @@ pool.on("error", (err) => {
   }
 })();
 
-export default pool;
+// ✅ Export dengan named export
+export { pool };
