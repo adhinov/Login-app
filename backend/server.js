@@ -2,12 +2,13 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
-import morgan from "morgan";
+import pkg from "morgan"; // ✅ fallback import
 import pool from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 
 dotenv.config();
 
+const morgan = pkg.default || pkg; // ✅ handle ESM/CommonJS export
 const app = express();
 const PORT = process.env.PORT || 5000;
 
