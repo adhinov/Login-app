@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import morgan from "morgan";
 import pkg from "pg";
 import admin from "firebase-admin";
+import authRoutes from "./routes/authRoutes.js"; // aktifkan route auth
 
 // =============== CONFIG ENV ===============
 dotenv.config();
@@ -13,12 +14,14 @@ const PORT = process.env.PORT || 8080;
 
 // =============== FIREBASE ADMIN ===============
 try {
-  if (!admin.apps.length) {
+  if (!process.env.FIREBASE_PROJECT_ID || !process.env.FIREBASE_CLIENT_EMAIL || !process.env.FIREBASE_PRIVATE_KEY) {
+    console.warn("⚠️ Firebase env vars missing, skipping Firebase Admin init");
+  } else if (!admin.apps.length) {
     admin.initializeApp({
       credential: admin.credential.cert({
         projectId: process.env.FIREBASE_PROJECT_ID,
         clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+        privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
       }),
     });
     console.log("✅ Firebase Admin initialized");
@@ -28,12 +31,8 @@ try {
 }
 
 // =============== MORGAN LOGGER ===============
-if (morgan) {
-  app.use(morgan("dev"));
-  console.log("✅ Morgan logger enabled");
-} else {
-  console.warn("⚠️ Morgan not loaded, skipping logger");
-}
+app.use(morgan("dev"));
+console.log("✅ Morgan logger enabled");
 
 // =============== MIDDLEWARE ===============
 app.use(express.json());
@@ -47,11 +46,9 @@ const allowedOrigins = (process.env.CORS_ORIGIN || "")
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error(`CORS blocked for origin: ${origin}`));
-      }
+      if (!origin) return callback(null, true); // allow Postman/curl
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      return callback(new Error(`❌ CORS blocked for origin: ${origin}`));
     },
     credentials: true,
   })
@@ -68,9 +65,13 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false },
 });
 
+// test koneksi saat startup
 pool
   .connect()
-  .then(() => console.log("✅ PostgreSQL connected successfully"))
+  .then((client) => {
+    console.log("✅ PostgreSQL connected successfully");
+    client.release();
+  })
   .catch((err) => console.error("❌ PostgreSQL connection error:", err.message));
 
 // =============== ROUTES ===============
@@ -88,16 +89,28 @@ app.get("/api/debug/cors", (req, res) => {
   });
 });
 
+// Auth routes
+app.use("/api/auth", authRoutes);
+
 // Root route
 app.get("/", (req, res) => {
   res.send("🚀 Backend is running");
 });
 
-// TODO: Import & use your routes (auth, users, etc.)
-// import authRoutes from "./routes/authRoutes.js";
-// app.use("/api/auth", authRoutes);
+// 404 fallback
+app.use((req, res) => {
+  res.status(404).json({ error: "Route not found" });
+});
+
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error("❌ Server error:", err.message);
+  res.status(500).json({ error: "Internal Server Error" });
+});
 
 // =============== START SERVER ===============
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
+
+export default app; // biar bisa dipakai untuk testing (opsional)
