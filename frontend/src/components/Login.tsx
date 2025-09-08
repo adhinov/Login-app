@@ -1,8 +1,11 @@
 // src/components/Login.tsx
 import { useState } from "react";
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
+import { FcGoogle } from "react-icons/fc";
 import { Link, useNavigate } from "react-router-dom";
 import axios, { type AxiosResponse } from "axios";
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { auth } from "../firebase"; // ✅ hanya ambil auth
 import "./global.css";
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -15,7 +18,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // ================= LOGIN =================
+  // ================= LOGIN EMAIL/PASSWORD =================
   const handleLogin = async () => {
     setLoading(true);
     setMessage("");
@@ -87,11 +90,55 @@ const Login = () => {
     }
   };
 
+  // ================= LOGIN GOOGLE =================
+  const handleGoogleLogin = async () => {
+    try {
+      const provider = new GoogleAuthProvider(); // ✅ bikin provider langsung
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
+      const idToken = await user.getIdToken();
+
+      // Kirim token ke backend untuk verifikasi / signup otomatis
+      const res: AxiosResponse<{
+        token: string;
+        user: { role?: string; role_id?: number; email: string; username?: string };
+      }> = await axios.post(`${API_URL}/api/auth/google-login`, {
+        token: idToken,
+      });
+
+      const { token, user: backendUser } = res.data;
+
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(backendUser));
+
+      const userRole =
+        backendUser.role?.toLowerCase() || (backendUser.role_id === 1 ? "admin" : "user");
+      localStorage.setItem("role", userRole);
+
+      if (userRole === "admin") {
+        navigate("/adminDashboard", { replace: true });
+      } else {
+        navigate("/welcome", {
+          state: {
+            email: backendUser.email,
+            username: backendUser.username || "User",
+          },
+          replace: true,
+        });
+      }
+    } catch (err: any) {
+      console.error("❌ [DEBUG] Error Google Login:", err);
+      setMessage("Login dengan Google gagal. Silakan coba lagi.");
+    }
+  };
+
   return (
     <div className="form-container">
       <div className="form-box">
         <h2 className="form-title green">Login</h2>
 
+        {/* FORM LOGIN EMAIL/PASSWORD */}
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -150,7 +197,14 @@ const Login = () => {
         {/* PESAN ERROR */}
         {message && <p className="error-message">{message}</p>}
 
-        <div className="form-separator">============</div>
+        {/* PEMBATAS */}
+        <div className="form-separator">atau</div>
+
+        {/* BUTTON GOOGLE */}
+        <button type="button" className="google-button" onClick={handleGoogleLogin}>
+          <FcGoogle className="google-icon" />
+          Login dengan Google
+        </button>
 
         {/* LINK SIGNUP */}
         <div className="form-footer">
