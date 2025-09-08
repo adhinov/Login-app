@@ -6,6 +6,7 @@ import morgan from "morgan";
 import pkg from "pg";
 import admin from "firebase-admin";
 import authRoutes from "./routes/authRoutes.js"; // aktifkan route auth
+import adminRoutes from "./routes/adminRoutes.js";
 
 // =============== CONFIG ENV ===============
 dotenv.config();
@@ -107,6 +108,8 @@ app.use((err, req, res, next) => {
   console.error("❌ Server error:", err.message);
   res.status(500).json({ error: "Internal Server Error" });
 });
+
+app.use("/api/admin", adminRoutes);
 
 // =============== START SERVER ===============
 app.listen(PORT, () => {
