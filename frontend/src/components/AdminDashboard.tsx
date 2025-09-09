@@ -35,12 +35,16 @@ const AdminDashboard: React.FC = () => {
       const response = await axios.get(`${apiUrl}/api/admin/users`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      // Memeriksa apakah data respons adalah array sebelum mengatur state
-      if (Array.isArray(response.data)) {
-        setUsers(response.data);
+      
+      // Mengakses properti 'users' dari objek respons
+      const usersData = response.data.users;
+
+      // Memeriksa apakah data yang diterima adalah array
+      if (Array.isArray(usersData)) {
+        setUsers(usersData);
       } else {
         console.error("Data yang diterima bukan array:", response.data);
-        setError("Format data API tidak valid.");
+        setError("Format data API tidak valid. Properti 'users' tidak ditemukan atau bukan array.");
         setUsers([]);
       }
     } catch (err) {
