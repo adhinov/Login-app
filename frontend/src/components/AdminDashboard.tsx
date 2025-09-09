@@ -1,44 +1,53 @@
-import React, { useEffect, useState, useRef, useLayoutEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import "./global.css";
 
+// Antarmuka untuk data pengguna, dengan properti opsional
 interface User {
   id: number;
   email: string;
-  username: string;
+  username: string | null;
   role: string;
   created_at: string;
-  phone_number?: string;
+  phone_number: string | null;
 }
 
 const AdminDashboard: React.FC = () => {
+  // State untuk menyimpan data pengguna, status loading, dan error
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
-  const tableWrapperRef = useRef<HTMLDivElement>(null);
 
+  // Memastikan URL API tersedia dari variabel lingkungan
+  const apiUrl = import.meta.env.VITE_API_URL;
+
+  // Fungsi asinkronus untuk mengambil data pengguna dari API
   const fetchUsers = async () => {
+    setLoading(true);
+    setError(null);
     try {
-      setLoading(true);
-      setError(null);
       const token = localStorage.getItem("token");
       if (!token) {
         navigate("/login");
         return;
       }
-      const res = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/admin/users`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      setUsers(res.data);
-    } catch (err: any) {
-      console.error("Gagal mengambil data user:", err);
-      if (err.response?.status === 401 || err.response?.status === 403) {
+      const response = await axios.get(`${apiUrl}/api/admin/users`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      // Memeriksa apakah data respons adalah array sebelum mengatur state
+      if (Array.isArray(response.data)) {
+        setUsers(response.data);
+      } else {
+        console.error("Data yang diterima bukan array:", response.data);
+        setError("Format data API tidak valid.");
+        setUsers([]);
+      }
+    } catch (err) {
+      console.error("Gagal mengambil data pengguna:", err);
+      if (axios.isAxiosError(err) && (err.response?.status === 401 || err.response?.status === 403)) {
         localStorage.removeItem("token");
+        localStorage.removeItem("role");
         setError("Akses ditolak. Silakan login ulang.");
         navigate("/login");
       } else {
@@ -49,150 +58,104 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
+  // Efek samping untuk mengambil data saat komponen dimuat
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [navigate, apiUrl]);
 
-  useLayoutEffect(() => {
-    const el = tableWrapperRef.current;
-    if (!el) return;
-    el.scrollLeft = 0;
-  }, [users]);
-
+  // Fungsi untuk menangani proses logout
   const handleLogout = () => {
-    if (window.confirm("Yakin ingin logout?")) {
-      localStorage.removeItem("token");
-      navigate("/login");
-    }
+    // Menghindari window.confirm karena tidak berfungsi di Canvas
+    console.log("Logout dikonfirmasi. Mengarahkan ke halaman login.");
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    navigate("/login");
   };
 
-  const thStyle: React.CSSProperties = {
-    border: "1px solid #ddd",
-    padding: "10px",
-    background: "#e0e0e0",
-    fontWeight: "bold",
-    whiteSpace: "nowrap",
-  };
-
-  const tdStyle: React.CSSProperties = {
-    border: "1px solid #ddd",
-    padding: "8px",
-    whiteSpace: "nowrap",
-  };
-
-  const buttonStyle: React.CSSProperties = {
-    padding: "8px 14px",
-    border: "none",
-    borderRadius: "6px",
-    background: "#007bff",
-    color: "#fff",
-    cursor: "pointer",
-  };
-
-  // ✅ Ambil Previous Login admin (login sebelum yang sekarang)
   const previousLogin = localStorage.getItem("previousLogin");
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        padding: "24px 20px 32px",
-        fontFamily: "tahoma, sans-serif",
-        color: "#333",
-        boxSizing: "border-box",
-        textAlign: "center",
-      }}
-    >
-      <h1 style={{ marginBottom: 8 }}>Admin Dashboard</h1>
-      <h2 style={{ marginBottom: 18 }}>Daftar Pengguna</h2>
-      {loading && <p>⏳ Memuat data...</p>}
-      {error && <p style={{ color: "red" }}>{error}</p>}
-
-      <div ref={tableWrapperRef} className="table-wrapper">
-        <table
-          style={{
-            minWidth: 850,
-            background: "#fff",
-            boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
-            borderRadius: 8,
-            borderCollapse: "collapse",
-          }}
+    <div className="min-h-screen bg-gray-100 p-6 font-sans flex flex-col items-center">
+      {/* Tombol logout diposisikan di sudut kanan atas */}
+      <div className="absolute top-6 right-6">
+        <button
+          onClick={handleLogout}
+          className="bg-red-600 text-white px-5 py-2 rounded-lg shadow-md hover:bg-red-700 transition"
         >
-          <thead>
-            <tr>
-              <th style={thStyle}>ID</th>
-              <th style={thStyle}>Email</th>
-              <th style={thStyle}>Username</th>
-              <th style={thStyle}>Role</th>
-              <th style={thStyle}>Created At</th>
-              <th style={thStyle}>Phone</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((u) => (
-              <tr key={u.id}>
-                <td style={{ ...tdStyle, textAlign: "center" }}>{u.id}</td>
-                <td style={{ ...tdStyle, textAlign: "left" }}>{u.email}</td>
-                <td style={{ ...tdStyle, textAlign: "left" }}>
-                  {u.username || "-"}
-                </td>
-                <td style={{ ...tdStyle, textAlign: "center" }}>{u.role}</td>
-                <td style={{ ...tdStyle, textAlign: "center" }}>
-                  {/* ✅ hanya tanggal */}
-                  {new Date(u.created_at).toLocaleDateString("id-ID", {
-                    timeZone: "Asia/Jakarta",
-                  })}
-                </td>
-                <td style={{ ...tdStyle, textAlign: "center" }}>
-                  {u.phone_number || "-"}
-                </td>
-              </tr>
-            ))}
-            {users.length === 0 && !loading && (
-              <tr>
-                <td colSpan={6} style={{ textAlign: "center", padding: "12px" }}>
-                  Tidak ada data pengguna.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+          Logout
+        </button>
       </div>
 
-      <p style={{ marginTop: 10 }}>
-        Total Pengguna: <b>{users.length}</b>
-      </p>
+      <div className="w-full max-w-4xl mx-auto flex flex-col items-center pt-12">
+        <h1 className="text-3xl font-bold mb-4 text-gray-800">Admin Dashboard</h1>
+        <h2 className="text-xl font-semibold mb-6 text-gray-800">Daftar Pengguna</h2>
 
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          width: "100%",
-          maxWidth: 850,
-          margin: "12px auto 0 auto",
-        }}
-      >
-        {/* ✅ Last Login Admin di kiri bawah (tanggal + jam) */}
-        <div style={{ fontSize: "14px", color: "#555", textAlign: "left" }}>
-          Last Login (Anda):{" "}
-          {previousLogin
-            ? new Date(previousLogin).toLocaleString("id-ID", {
-                timeZone: "Asia/Jakarta",
-              })
-            : "-"}
-        </div>
+        {loading && <p className="text-blue-500">⏳ Memuat data...</p>}
+        {error && <p className="text-red-500">{error}</p>}
+        
+        {/* Kontainer untuk tabel dengan scroll horizontal jika diperlukan */}
+        {!loading && !error && (
+          <div className="overflow-x-auto w-full bg-white shadow-lg rounded-lg">
+            <table className="min-w-full text-sm text-left text-gray-800">
+              <thead className="bg-gray-200 text-gray-700">
+                <tr>
+                  <th className="px-4 py-3 border-b-2 border-gray-300">ID</th>
+                  <th className="px-4 py-3 border-b-2 border-gray-300">Email</th>
+                  <th className="px-4 py-3 border-b-2 border-gray-300">Username</th>
+                  <th className="px-4 py-3 border-b-2 border-gray-300">Role</th>
+                  <th className="px-4 py-3 border-b-2 border-gray-300">Created At</th>
+                  <th className="px-4 py-3 border-b-2 border-gray-300">Phone</th>
+                </tr>
+              </thead>
+              <tbody>
+                {users.length > 0 ? (
+                  users.map((user) => (
+                    <tr key={user.id} className="border-b hover:bg-gray-100 transition">
+                      <td className="px-4 py-2">{user.id}</td>
+                      <td className="px-4 py-2">{user.email}</td>
+                      <td className="px-4 py-2">{user.username || "-"}</td>
+                      <td className="px-4 py-2">{user.role}</td>
+                      <td className="px-4 py-2">
+                        {new Date(user.created_at).toLocaleDateString("id-ID", {
+                          timeZone: "Asia/Jakarta",
+                        })}
+                      </td>
+                      <td className="px-4 py-2">{user.phone_number || "-"}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={6} className="text-center py-4 text-gray-500">
+                      Tidak ada data pengguna.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
 
-        <div style={{ display: "flex", gap: 10 }}>
-          <button onClick={fetchUsers} style={buttonStyle} disabled={loading}>
-            {loading ? "Refreshing..." : "Refresh"}
-          </button>
-          <button
-            onClick={handleLogout}
-            style={{ ...buttonStyle, background: "#dc3545" }}
-          >
-            Logout
-          </button>
+        <div className="mt-4 flex flex-col md:flex-row justify-between w-full max-w-4xl items-center">
+          <p className="text-sm text-gray-600 mt-2 md:mt-0">
+            Total Pengguna: <span className="font-bold">{users.length}</span>
+          </p>
+          <div className="flex items-center gap-4 mt-4 md:mt-0">
+            <p className="text-sm text-gray-600">
+              Last Login (Anda):{" "}
+              <span className="font-bold">
+                {previousLogin
+                  ? new Date(previousLogin).toLocaleString("id-ID", { timeZone: "Asia/Jakarta" })
+                  : "-"}
+              </span>
+            </p>
+            <button
+              onClick={fetchUsers}
+              className="bg-blue-600 text-white px-5 py-2 rounded-lg shadow-md hover:bg-blue-700 transition"
+              disabled={loading}
+            >
+              {loading ? "Refreshing..." : "Refresh"}
+            </button>
+          </div>
         </div>
       </div>
     </div>
