@@ -138,6 +138,7 @@ const AdminDashboard: React.FC = () => {
                 </td>
                 <td style={{ ...tdStyle, textAlign: "center" }}>{u.role}</td>
                 <td style={{ ...tdStyle, textAlign: "center" }}>
+                  {/* ✅ hanya tanggal */}
                   {new Date(u.created_at).toLocaleDateString("id-ID", {
                     timeZone: "Asia/Jakarta",
                   })}
@@ -172,7 +173,7 @@ const AdminDashboard: React.FC = () => {
           margin: "12px auto 0 auto",
         }}
       >
-        {/* ✅ Last Login Admin di kiri bawah */}
+        {/* ✅ Last Login Admin di kiri bawah (tanggal + jam) */}
         <div style={{ fontSize: "14px", color: "#555", textAlign: "left" }}>
           Last Login (Anda):{" "}
           {previousLogin
