@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import "./global.css";
 
 // Antarmuka untuk data pengguna, dengan properti opsional
 interface User {
