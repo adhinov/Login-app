@@ -8,8 +8,12 @@ import pool from "../config/db.js";
  */
 export const getUserProfile = async (req, res) => {
   try {
+    console.log("🔍 Fetch profile untuk userID:", req.user.id);
+
     const result = await pool.query(
-      "SELECT id, email, username, role, created_at, phone FROM users WHERE id = $1",
+      `SELECT id, email, username, role, created_at, phone, last_login
+       FROM users 
+       WHERE id = $1`,
       [req.user.id]
     );
 
@@ -17,10 +21,11 @@ export const getUserProfile = async (req, res) => {
       return res.status(404).json({ msg: "User not found" });
     }
 
-    res.json(result.rows[0]); // kirim user profile
+    console.log("✅ Profile ditemukan:", result.rows[0].email);
+    res.json(result.rows[0]);
   } catch (err) {
     console.error("❌ Error getUserProfile:", err.message);
-    res.status(500).json({ msg: "Server Error" });
+    res.status(500).json({ msg: "Server Error", detail: err.message });
   }
 };
 
@@ -31,13 +36,18 @@ export const getUserProfile = async (req, res) => {
  */
 export const getAllUsers = async (req, res) => {
   try {
+    console.log("🔍 Admin", req.user?.email, "sedang fetch semua user...");
+
     const result = await pool.query(
-      "SELECT id, email, username, role, created_at, phone FROM users ORDER BY id ASC"
+      `SELECT id, email, username, role, created_at, phone, last_login
+       FROM users 
+       ORDER BY id ASC`
     );
 
-    res.json(result.rows); // semua user
+    console.log("✅ Jumlah user ditemukan:", result.rows.length);
+    res.json(result.rows);
   } catch (err) {
     console.error("❌ Error getAllUsers:", err.message);
-    res.status(500).json({ msg: "Server Error" });
+    res.status(500).json({ msg: "Server Error", detail: err.message });
   }
 };
