@@ -9,6 +9,7 @@ import admin from "firebase-admin";
 // Import routes
 import authRoutes from "./routes/authRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
+import userRoutes from "./routes/userRoutes.js"; // ✅ tambahkan ini
 
 // =============== CONFIG ENV ===============
 dotenv.config();
@@ -27,10 +28,7 @@ try {
         credential: admin.credential.cert({
           projectId: process.env.FIREBASE_PROJECT_ID,
           clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-          privateKey: process
-            .env
-            .FIREBASE_PRIVATE_KEY
-            .replace(/\\n/g, "\n"),
+          privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
         }),
       });
       console.log("✅ Firebase Admin initialized");
@@ -102,6 +100,7 @@ app.get("/api/debug/cors", (req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/users", userRoutes); // ✅ pasang route users
 
 app.get("/", (req, res) => {
   res.send("🚀 Backend is running");

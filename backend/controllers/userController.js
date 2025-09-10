@@ -1,21 +1,43 @@
 // controllers/userController.js
-import { getAllUsers } from "../models/userModel.js";
+import pool from "../config/db.js";
 
-const getUserProfile = async (req, res) => {
+/**
+ * @desc   Ambil profile user berdasarkan ID dari token
+ * @route  GET /api/users/profile
+ * @access Private
+ */
+export const getUserProfile = async (req, res) => {
   try {
-    // Cari user berdasarkan ID yang ada di token JWT (dari middleware)
-    const user = await User.findById(req.user.id).select("-password");
+    const result = await pool.query(
+      "SELECT id, email, username, role, created_at, phone FROM users WHERE id = $1",
+      [req.user.id]
+    );
 
-    if (!user) {
+    if (result.rows.length === 0) {
       return res.status(404).json({ msg: "User not found" });
     }
 
-    res.json(user);
+    res.json(result.rows[0]); // kirim user profile
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send("Server Error");
+    console.error("❌ Error getUserProfile:", err.message);
+    res.status(500).json({ msg: "Server Error" });
   }
 };
 
-// Menggunakan named export agar bisa diimpor oleh userRoutes.js
-export { getUserProfile };
+/**
+ * @desc   Ambil semua user (khusus admin)
+ * @route  GET /api/users
+ * @access Private (Admin Only)
+ */
+export const getAllUsers = async (req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT id, email, username, role, created_at, phone FROM users ORDER BY id ASC"
+    );
+
+    res.json(result.rows); // semua user
+  } catch (err) {
+    console.error("❌ Error getAllUsers:", err.message);
+    res.status(500).json({ msg: "Server Error" });
+  }
+};
