@@ -1,165 +1,104 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import axios from "axios";
 
 interface User {
   id: number;
   email: string;
-  username: string | null;
+  username: string;
   role: string;
   created_at: string;
-  phone_number: string | null;
+  phone: string;
 }
 
-const AdminDashboard: React.FC = () => {
+export default function AdminDashboard() {
   const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  const navigate = useNavigate();
-
-  const apiUrl = import.meta.env.VITE_API_URL;
-  const previousLogin = localStorage.getItem("previousLogin");
+  const [lastLogin, setLastLogin] = useState<string>("");
 
   const fetchUsers = async () => {
-    setLoading(true);
-    setError(null);
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        navigate("/login");
-        return;
-      }
-
-      const response = await axios.get(`${apiUrl}/api/admin/users`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      const usersData = response.data.users;
-      if (Array.isArray(usersData)) {
-        setUsers(usersData);
-      } else {
-        console.error("Format data API salah:", response.data);
-        setError("Format data API tidak valid.");
-        setUsers([]);
-      }
-    } catch (err: any) {
-      console.error("Gagal mengambil data pengguna:", err);
-      if (axios.isAxiosError(err) && (err.response?.status === 401 || err.response?.status === 403)) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("role");
-        setError("Akses ditolak. Silakan login ulang.");
-        navigate("/login");
-      } else {
-        setError("Gagal memuat data pengguna. Coba lagi nanti.");
-      }
-    } finally {
-      setLoading(false);
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/users`);
+      setUsers(response.data);
+    } catch (error) {
+      console.error("Error fetching users:", error);
     }
   };
 
   useEffect(() => {
     fetchUsers();
-  }, [navigate, apiUrl]);
+
+    // ambil last login dari localStorage (disimpan waktu login)
+    const last = localStorage.getItem("lastLogin");
+    if (last) setLastLogin(last);
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
-    localStorage.removeItem("role");
-    navigate("/login");
+    window.location.href = "/login";
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 font-sans relative">
-      {/* Tombol Logout */}
-      <div className="absolute top-6 right-6">
-        <button
-          onClick={handleLogout}
-          className="bg-red-600 text-white px-5 py-2 rounded-lg shadow hover:bg-red-700 transition"
-        >
-          Logout
-        </button>
-      </div>
+    <div className="min-h-screen bg-gray-100 flex flex-col items-center py-8 px-4">
+      <div className="w-full max-w-6xl bg-white shadow-lg rounded-2xl p-6">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold text-gray-700">Admin Dashboard</h1>
+          <button
+            onClick={handleLogout}
+            className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
+          >
+            Logout
+          </button>
+        </div>
 
-      <div className="max-w-6xl mx-auto p-6">
-        <h1 className="text-3xl font-bold text-gray-800 text-center mb-2">
-          Admin Dashboard
-        </h1>
-        <h2 className="text-xl font-semibold text-gray-700 text-center mb-6">
-          Daftar Pengguna
-        </h2>
+        <h2 className="text-lg font-semibold text-gray-600 mb-4">Daftar Pengguna</h2>
 
-        {loading && <p className="text-blue-500 text-center">⏳ Memuat data...</p>}
-        {error && <p className="text-red-500 text-center">{error}</p>}
-
-        {!loading && !error && (
-          <div className="overflow-x-auto bg-white shadow-lg rounded-lg">
-            <table className="min-w-full text-sm text-left text-gray-800">
-              <thead className="bg-gray-200 text-gray-700">
-                <tr>
-                  <th className="px-4 py-3 border-b-2 border-gray-300">ID</th>
-                  <th className="px-4 py-3 border-b-2 border-gray-300">Email</th>
-                  <th className="px-4 py-3 border-b-2 border-gray-300">Username</th>
-                  <th className="px-4 py-3 border-b-2 border-gray-300">Role</th>
-                  <th className="px-4 py-3 border-b-2 border-gray-300">Created At</th>
-                  <th className="px-4 py-3 border-b-2 border-gray-300">Phone</th>
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse border border-gray-300">
+            <thead className="bg-gray-200">
+              <tr>
+                <th className="border border-gray-300 px-4 py-2">ID</th>
+                <th className="border border-gray-300 px-4 py-2">Email</th>
+                <th className="border border-gray-300 px-4 py-2">Username</th>
+                <th className="border border-gray-300 px-4 py-2">Role</th>
+                <th className="border border-gray-300 px-4 py-2">Created At</th>
+                <th className="border border-gray-300 px-4 py-2">Phone</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.map((u) => (
+                <tr key={u.id} className="text-center hover:bg-gray-50">
+                  <td className="border border-gray-300 px-4 py-2">{u.id}</td>
+                  <td className="border border-gray-300 px-4 py-2">{u.email}</td>
+                  <td className="border border-gray-300 px-4 py-2">{u.username}</td>
+                  <td className="border border-gray-300 px-4 py-2">{u.role}</td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    {new Date(u.created_at).toLocaleDateString()}
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2">{u.phone}</td>
                 </tr>
-              </thead>
-              <tbody>
-                {users.length > 0 ? (
-                  users.map((user) => (
-                    <tr key={user.id} className="border-b hover:bg-gray-50 transition">
-                      <td className="px-4 py-2 text-center">{user.id}</td>
-                      <td className="px-4 py-2">{user.email}</td>
-                      <td className="px-4 py-2">{user.username || "-"}</td>
-                      <td className="px-4 py-2 text-center">{user.role}</td>
-                      <td className="px-4 py-2 text-center">
-                        {new Date(user.created_at).toLocaleDateString("id-ID", {
-                          timeZone: "Asia/Jakarta",
-                        })}
-                      </td>
-                      <td className="px-4 py-2 text-center">{user.phone_number || "-"}</td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={6} className="text-center py-4 text-gray-500">
-                      Tidak ada data pengguna.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <p className="text-sm text-gray-600 mt-4">
+          Total Pengguna: <span className="font-semibold">{users.length}</span>
+        </p>
+
+        {lastLogin && (
+          <p className="text-sm text-gray-600 mt-2">
+            Last Login (Anda): <span className="font-mono">{lastLogin}</span>
+          </p>
         )}
 
-        <div className="mt-6 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-gray-700 text-sm">
-            Total Pengguna:{" "}
-            <span className="font-bold">{users.length}</span>
-          </p>
-
-          <div className="flex flex-col md:flex-row items-center gap-4">
-            <p className="text-sm text-gray-600">
-              Last Login (Anda):{" "}
-              <span className="font-bold">
-                {previousLogin
-                  ? new Date(previousLogin).toLocaleString("id-ID", {
-                      timeZone: "Asia/Jakarta",
-                    })
-                  : "-"}
-              </span>
-            </p>
-            <button
-              onClick={fetchUsers}
-              className="bg-blue-600 text-white px-5 py-2 rounded-lg shadow hover:bg-blue-700 transition"
-              disabled={loading}
-            >
-              {loading ? "Refreshing..." : "Refresh"}
-            </button>
-          </div>
+        <div className="mt-4">
+          <button
+            onClick={fetchUsers}
+            className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+          >
+            Refresh
+          </button>
         </div>
       </div>
     </div>
   );
-};
-
-export default AdminDashboard;
+}
