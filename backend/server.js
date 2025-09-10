@@ -6,6 +6,7 @@ import morgan from "morgan";
 import pkg from "pg";
 import admin from "firebase-admin";
 
+// Import routes
 import authRoutes from "./routes/authRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 
@@ -17,33 +18,35 @@ const PORT = process.env.PORT || 8080;
 // =============== FIREBASE ADMIN ===============
 try {
   if (
-    !process.env.FIREBASE_PROJECT_ID ||
-    !process.env.FIREBASE_CLIENT_EMAIL ||
-    !process.env.FIREBASE_PRIVATE_KEY
+    process.env.FIREBASE_PROJECT_ID &&
+    process.env.FIREBASE_CLIENT_EMAIL &&
+    process.env.FIREBASE_PRIVATE_KEY
   ) {
+    if (!admin.apps.length) {
+      admin.initializeApp({
+        credential: admin.credential.cert({
+          projectId: process.env.FIREBASE_PROJECT_ID,
+          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+          privateKey: process
+            .env
+            .FIREBASE_PRIVATE_KEY
+            .replace(/\\n/g, "\n"),
+        }),
+      });
+      console.log("✅ Firebase Admin initialized");
+    }
+  } else {
     console.warn("⚠️ Firebase env vars missing, skipping Firebase Admin init");
-  } else if (!admin.apps.length) {
-    admin.initializeApp({
-      credential: admin.credential.cert({
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
-      }),
-    });
-    console.log("✅ Firebase Admin initialized");
   }
 } catch (err) {
-  console.error("❌ Firebase Admin initialization error:", err.message);
+  console.error("❌ Firebase Admin init error:", err.message);
 }
 
-// =============== MORGAN LOGGER ===============
-app.use(morgan("dev"));
-console.log("✅ Morgan logger enabled");
-
 // =============== MIDDLEWARE ===============
+app.use(morgan("dev"));
 app.use(express.json());
 
-// Allowed origins (ambil dari env, pisahkan koma, filter kosong)
+// Allowed origins
 const allowedOrigins = (process.env.CORS_ORIGIN || "")
   .split(",")
   .map((origin) => origin.trim())
@@ -71,7 +74,6 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false },
 });
 
-// test koneksi saat startup
 pool
   .connect()
   .then((client) => {
@@ -83,8 +85,6 @@ pool
   );
 
 // =============== ROUTES ===============
-
-// Health check endpoint
 app.get("/api/health", (req, res) => {
   res.status(200).json({
     status: "ok",
@@ -92,7 +92,6 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-// Debug CORS endpoint
 app.get("/api/debug/cors", (req, res) => {
   res.json({
     message: "CORS debug endpoint",
@@ -101,13 +100,9 @@ app.get("/api/debug/cors", (req, res) => {
   });
 });
 
-// Auth routes
 app.use("/api/auth", authRoutes);
-
-// Admin routes (harus sebelum fallback 404)
 app.use("/api/admin", adminRoutes);
 
-// Root route
 app.get("/", (req, res) => {
   res.send("🚀 Backend is running");
 });
@@ -128,4 +123,4 @@ app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
 
-export default app; // biar bisa dipakai untuk testing
+export default app;

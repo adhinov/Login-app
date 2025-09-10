@@ -1,3 +1,4 @@
+// backend/routes/authRoutes.js
 import express from "express";
 import {
   register,
@@ -32,7 +33,8 @@ router.post("/forgot-password", forgotPassword);
 // Reset password (dari link email)
 router.post("/reset-password", resetPassword);
 
-// ==================== ADMIN ROUTES ====================
+// ==================== ADMIN TEST ROUTE ====================
+// (bisa diakses hanya oleh admin)
 router.get("/admin", verifyToken, isAdmin, (req, res) => {
   res.json({ message: "Selamat datang, Admin!", user: req.user });
 });
