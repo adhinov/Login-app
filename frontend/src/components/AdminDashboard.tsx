@@ -22,7 +22,12 @@ export default function AdminDashboard() {
       setLoading(true);
       setError("");
 
+      const apiUrl = import.meta.env.VITE_API_URL;
       const token = localStorage.getItem("token");
+
+      console.log("🌍 [DEBUG] API URL:", apiUrl);
+      console.log("🔑 [DEBUG] Token from localStorage:", token);
+
       if (!token) {
         console.error("❌ No token found in localStorage");
         setError("Token tidak ditemukan. Silakan login ulang.");
@@ -34,19 +39,26 @@ export default function AdminDashboard() {
         Authorization: `Bearer ${token}`,
       };
 
-      // 🔍 Debug log sebelum request
-      console.log("🔑 Sending Authorization header:", headers);
+      console.log("📡 [DEBUG] Sending headers:", headers);
 
-      const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/users`,
-        { headers }
-      );
+      const response = await axios.get(`${apiUrl}/api/users`, { headers });
 
-      console.log("✅ Users fetched:", response.data);
+      console.log("✅ [DEBUG] Users fetched:", response.data);
       setUsers(response.data);
     } catch (err: any) {
-      console.error("❌ Error fetching users:", err);
-      setError("Gagal mengambil data pengguna.");
+      console.error("❌ [DEBUG] Error fetching users:", err);
+
+      if (err.response) {
+        console.error("📡 [DEBUG] Response status:", err.response.status);
+        console.error("📡 [DEBUG] Response data:", err.response.data);
+        console.error("📡 [DEBUG] Response headers:", err.response.headers);
+      } else if (err.request) {
+        console.error("📡 [DEBUG] No response received:", err.request);
+      } else {
+        console.error("📡 [DEBUG] Error setup:", err.message);
+      }
+
+      setError("Gagal mengambil data pengguna. Lihat console untuk detail.");
     } finally {
       setLoading(false);
     }
@@ -104,32 +116,17 @@ export default function AdminDashboard() {
             <table className="w-full text-sm text-left border-collapse">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-4 py-3 border-b font-medium text-gray-600">
-                    ID
-                  </th>
-                  <th className="px-4 py-3 border-b font-medium text-gray-600">
-                    Email
-                  </th>
-                  <th className="px-4 py-3 border-b font-medium text-gray-600">
-                    Username
-                  </th>
-                  <th className="px-4 py-3 border-b font-medium text-gray-600">
-                    Role
-                  </th>
-                  <th className="px-4 py-3 border-b font-medium text-gray-600">
-                    Created At
-                  </th>
-                  <th className="px-4 py-3 border-b font-medium text-gray-600">
-                    Phone
-                  </th>
+                  <th className="px-4 py-3 border-b font-medium text-gray-600">ID</th>
+                  <th className="px-4 py-3 border-b font-medium text-gray-600">Email</th>
+                  <th className="px-4 py-3 border-b font-medium text-gray-600">Username</th>
+                  <th className="px-4 py-3 border-b font-medium text-gray-600">Role</th>
+                  <th className="px-4 py-3 border-b font-medium text-gray-600">Created At</th>
+                  <th className="px-4 py-3 border-b font-medium text-gray-600">Phone</th>
                 </tr>
               </thead>
               <tbody>
                 {users.map((u) => (
-                  <tr
-                    key={u.id}
-                    className="hover:bg-gray-50 transition-colors"
-                  >
+                  <tr key={u.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-4 py-2 border-b">{u.id}</td>
                     <td className="px-4 py-2 border-b">{u.email}</td>
                     <td className="px-4 py-2 border-b">{u.username}</td>
@@ -158,8 +155,7 @@ export default function AdminDashboard() {
         {/* Footer */}
         <div className="flex justify-between items-center mt-6">
           <p className="text-sm text-gray-600">
-            Total Pengguna:{" "}
-            <span className="font-semibold">{users.length}</span>
+            Total Pengguna: <span className="font-semibold">{users.length}</span>
           </p>
           <button
             onClick={fetchUsers}
