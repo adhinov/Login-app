@@ -52,14 +52,16 @@ export const login = async (req, res) => {
       [email]
     );
 
-    if (result.rows.length === 0)
+    if (result.rows.length === 0) {
       return res.status(404).json({ message: "User not found" });
+    }
 
     const user = result.rows[0];
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch)
+    if (!isMatch) {
       return res.status(401).json({ message: "Invalid credentials" });
+    }
 
     // Simpan last_login lama
     const lastLoginBefore = user.last_login;
@@ -70,12 +72,14 @@ export const login = async (req, res) => {
       [user.id]
     );
 
+    // ✅ Buat JWT dengan role
     const token = jwt.sign(
-      { id: user.id, role: user.role },
+      { id: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
 
+    // Kirim response
     res.json({
       token,
       user: {
@@ -87,7 +91,7 @@ export const login = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Login error:", error);
+    console.error("❌ Login error:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
