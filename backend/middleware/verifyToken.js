@@ -2,45 +2,30 @@
 import jwt from "jsonwebtoken";
 
 export const verifyToken = (req, res, next) => {
-  console.log("📩 Incoming Headers:", req.headers);
-
   const authHeader = req.headers["authorization"];
-  console.log("🔎 Authorization Header diterima:", authHeader);
+  console.log("📡 [verifyToken] Authorization header:", authHeader);
 
   if (!authHeader) {
-    console.error("❌ Authorization header tidak ditemukan");
-    return res.status(401).json({ message: "Token tidak ditemukan" });
+    console.log("❌ [verifyToken] Missing Authorization header");
+    return res.status(401).json({ message: "Authorization header missing" });
   }
 
-  const parts = authHeader.split(" ");
-  if (parts.length !== 2 || parts[0] !== "Bearer") {
-    console.error("❌ Format Authorization header salah:", authHeader);
-    return res
-      .status(400)
-      .json({ message: "Format token salah, gunakan Bearer <token>" });
+  const token = authHeader.split(" ")[1];
+  console.log("📡 [verifyToken] Extracted token:", token);
+
+  if (!token) {
+    console.log("❌ [verifyToken] Token not found after split");
+    return res.status(401).json({ message: "Token missing" });
   }
 
-  const token = parts[1];
-  console.log("🔑 Extracted Token (20 chars):", token.substring(0, 20) + "...");
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log("✅ [verifyToken] Decoded token:", decoded);
 
-  // 🔍 Debug JWT_SECRET
-  if (!process.env.JWT_SECRET) {
-    console.error("⚠️ JWT_SECRET tidak ditemukan di env!");
-  } else {
-    console.log(
-      "🔐 JWT_SECRET loaded (first 5 chars):",
-      process.env.JWT_SECRET.substring(0, 5) + "..."
-    );
-  }
-
-  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-    if (err) {
-      console.error("❌ Token tidak valid:", err.message);
-      return res.status(403).json({ message: "Token tidak valid" });
-    }
-
-    console.log("✅ Token decoded:", decoded);
     req.user = decoded;
     next();
-  });
+  } catch (err) {
+    console.error("❌ [verifyToken] Invalid token:", err.message);
+    return res.status(401).json({ message: "Invalid or expired token" });
+  }
 };

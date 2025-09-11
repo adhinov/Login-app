@@ -9,7 +9,7 @@ import admin from "firebase-admin";
 // Import routes
 import authRoutes from "./routes/authRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
-import userRoutes from "./routes/userRoutes.js"; // ✅ tambahkan ini
+import userRoutes from "./routes/userRoutes.js"; // ✅ User routes
 
 // =============== CONFIG ENV ===============
 dotenv.config();
@@ -47,15 +47,19 @@ app.use(express.json());
 // Allowed origins
 const allowedOrigins = (process.env.CORS_ORIGIN || "")
   .split(",")
-  .map((origin) => origin.trim())
+  .map((o) => o.trim())
   .filter(Boolean);
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin) return callback(null, true); // allow Postman/curl
-      if (allowedOrigins.includes(origin)) return callback(null, true);
-      return callback(new Error(`❌ CORS blocked for origin: ${origin}`));
+      if (!origin) return callback(null, true); // Postman / curl
+      if (allowedOrigins.includes(origin)) {
+        console.log(`✅ CORS allowed for: ${origin}`);
+        return callback(null, true);
+      }
+      console.warn(`❌ CORS blocked for: ${origin}`);
+      return callback(new Error(`CORS not allowed: ${origin}`));
     },
     credentials: true,
   })
@@ -78,18 +82,20 @@ pool
     console.log("✅ PostgreSQL connected successfully");
     client.release();
   })
-  .catch((err) =>
-    console.error("❌ PostgreSQL connection error:", err.message)
-  );
+  .catch((err) => {
+    console.error("❌ PostgreSQL connection error:", err.message);
+  });
 
 // =============== ROUTES ===============
 app.get("/api/health", (req, res) => {
   res.status(200).json({
     status: "ok",
     message: "✅ Backend API is running...",
+    db: pool ? "connected" : "not connected",
   });
 });
 
+// CORS debug endpoint
 app.get("/api/debug/cors", (req, res) => {
   res.json({
     message: "CORS debug endpoint",
@@ -98,10 +104,12 @@ app.get("/api/debug/cors", (req, res) => {
   });
 });
 
+// Register routes
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
-app.use("/api/users", userRoutes); // ✅ pasang route users
+app.use("/api/users", userRoutes);
 
+// Root
 app.get("/", (req, res) => {
   res.send("🚀 Backend is running");
 });
@@ -119,7 +127,7 @@ app.use((err, req, res, next) => {
 
 // =============== START SERVER ===============
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
 
 export default app;

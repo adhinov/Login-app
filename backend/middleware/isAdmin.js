@@ -1,22 +1,12 @@
 // middleware/isAdmin.js
-
 export const isAdmin = (req, res, next) => {
-  try {
-    if (!req.user) {
-      return res.status(401).json({ message: "User tidak terautentikasi" });
-    }
+  console.log("👤 [isAdmin] Current user:", req.user);
 
-    // ✅ Cek role langsung
-    if (req.user.role !== "admin") {
-      return res
-        .status(403)
-        .json({ message: "Akses ditolak: hanya admin yang bisa" });
-    }
-
-    // Jika admin → lanjut
+  if (req.user && req.user.role === "admin") {
+    console.log("✅ [isAdmin] Access granted for admin");
     next();
-  } catch (err) {
-    console.error("❌ Error di isAdmin middleware:", err.message);
-    return res.status(500).json({ message: "Terjadi kesalahan pada otorisasi" });
+  } else {
+    console.warn("⛔ [isAdmin] Access denied - not admin");
+    return res.status(403).json({ error: "Access denied, admin only" });
   }
 };

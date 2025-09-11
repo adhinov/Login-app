@@ -1,27 +1,28 @@
 // middleware/authMiddleware.js
 import jwt from "jsonwebtoken";
 
-// Middleware untuk otentikasi token JWT
 const auth = (req, res, next) => {
-  // Ambil token dari header
-  const token = req.header("x-auth-token");
+  const authHeader = req.headers["authorization"];
+  console.log("🔑 [AUTH] Authorization header:", authHeader);
 
-  // Cek jika tidak ada token
-  if (!token) {
-    return res.status(401).json({ msg: "No token, authorization denied" });
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    console.warn("⛔ [AUTH] No token provided");
+    return res.status(401).json({ error: "No token provided" });
   }
 
-  // Verifikasi token
-  try {
-    // PERBAIKI: Menggunakan process.env.JWT_SECRET untuk konsistensi
-    const decoded = jwt.verify(token, process.env.JWT_SECRET); 
+  const token = authHeader.split(" ")[1];
+  console.log("🔑 [AUTH] Extracted token:", token);
 
-    // PERBAIKI: payload token adalah object 'decoded' itu sendiri, bukan properti 'user'
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log("✅ [AUTH] Token decoded:", decoded);
+
+    // simpan ke req.user supaya bisa dipakai di route berikutnya
     req.user = decoded;
     next();
   } catch (err) {
-    // Mengubah pesan error agar lebih umum
-    res.status(401).json({ msg: "Token tidak valid" });
+    console.error("❌ [AUTH] Token verification failed:", err.message);
+    return res.status(401).json({ error: "Invalid token" });
   }
 };
 

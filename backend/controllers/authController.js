@@ -7,37 +7,37 @@ import { Resend } from "resend";
 import admin from "../config/firebaseAdmin.js";
 
 dotenv.config();
-
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 // ====================== REGISTER ======================
 export const register = async (req, res) => {
   try {
-    console.log("📩 Register request:", req.body);
+    console.log("📩 [REGISTER] Request body:", req.body);
 
     const { username, email, password } = req.body;
     const phone_number = req.body.phone_number || req.body.phone_Number || null;
 
+    // cek user
     const result = await pool.query("SELECT id FROM users WHERE email = $1", [
       email,
     ]);
     if (result.rows.length > 0) {
-      console.warn("⚠️ User already exists:", email);
+      console.warn("⚠️ [REGISTER] User already exists:", email);
       return res.status(400).json({ message: "User already exists" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const defaultRoleId = 2; // default = user
+    const defaultRoleId = 2; // default role = user
 
     await pool.query(
       "INSERT INTO users (username, email, password, phone_number, role_id) VALUES ($1, $2, $3, $4, $5)",
       [username, email, hashedPassword, phone_number, defaultRoleId]
     );
 
-    console.log("✅ User registered:", email);
+    console.log("✅ [REGISTER] User registered:", email);
     res.status(201).json({ message: "User registered successfully" });
   } catch (error) {
-    console.error("❌ Register error:", error);
+    console.error("❌ [REGISTER] Error:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -45,9 +45,8 @@ export const register = async (req, res) => {
 // ====================== LOGIN ======================
 export const login = async (req, res) => {
   try {
-    console.log("📩 Login request:", req.body);
-
     const { email, password } = req.body;
+    console.log("📩 [LOGIN] Attempt:", { email });
 
     const result = await pool.query(
       `SELECT u.id, u.username, u.email, u.password, u.last_login, r.name AS role
@@ -58,7 +57,7 @@ export const login = async (req, res) => {
     );
 
     if (result.rows.length === 0) {
-      console.warn("⚠️ User not found:", email);
+      console.warn("❌ [LOGIN] User not found:", email);
       return res.status(404).json({ message: "User not found" });
     }
 
@@ -66,24 +65,27 @@ export const login = async (req, res) => {
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      console.warn("⚠️ Invalid password for:", email);
+      console.warn("❌ [LOGIN] Invalid password for:", email);
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
     const lastLoginBefore = user.last_login;
 
+    // update last_login ke waktu sekarang (UTC+7)
     await pool.query(
       "UPDATE users SET last_login = NOW() + INTERVAL '7 hours' WHERE id = $1",
       [user.id]
     );
 
-    const token = jwt.sign(
-      { id: user.id, email: user.email, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: "1h" }
-    );
+    // payload JWT
+    const payload = { id: user.id, email: user.email, role: user.role };
+    console.log("🔑 [LOGIN] JWT payload:", payload);
 
-    console.log("✅ Login success:", email);
+    const token = jwt.sign(payload, process.env.JWT_SECRET, {
+      expiresIn: "1h",
+    });
+
+    console.log("✅ [LOGIN] Token generated");
 
     res.json({
       token,
@@ -96,7 +98,7 @@ export const login = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("❌ Login error:", error);
+    console.error("❌ [LOGIN] Server error:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -104,18 +106,18 @@ export const login = async (req, res) => {
 // ====================== GOOGLE LOGIN ======================
 export const googleLogin = async (req, res) => {
   try {
-    console.log("📩 Google login request body:", req.body);
+    console.log("📩 [GOOGLE LOGIN] Request body:", req.body);
 
     const { token } = req.body;
     if (!token) {
-      console.warn("⚠️ Token not provided for Google login");
+      console.warn("⚠️ [GOOGLE LOGIN] Token not provided");
       return res.status(400).json({ message: "Token not provided" });
     }
 
     const decoded = await admin.auth().verifyIdToken(token);
     const { email, name } = decoded;
 
-    console.log("🔑 Google token decoded:", decoded);
+    console.log("🔑 [GOOGLE LOGIN] Token decoded:", decoded);
 
     let result = await pool.query(
       `SELECT u.id, u.username, u.email, u.last_login, r.name AS role
@@ -140,10 +142,10 @@ export const googleLogin = async (req, res) => {
       );
       user.role = roleRes.rows[0].role;
 
-      console.log("🆕 New Google user registered:", email);
+      console.log("🆕 [GOOGLE LOGIN] New user registered:", email);
     } else {
       user = result.rows[0];
-      console.log("🔄 Existing Google user login:", email);
+      console.log("🔄 [GOOGLE LOGIN] Existing user login:", email);
     }
 
     const lastLoginBefore = user.last_login;
@@ -170,7 +172,7 @@ export const googleLogin = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("❌ Google login error:", error);
+    console.error("❌ [GOOGLE LOGIN] Error:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -178,7 +180,7 @@ export const googleLogin = async (req, res) => {
 // ====================== SET PASSWORD ======================
 export const setPassword = async (req, res) => {
   try {
-    console.log("📩 Set password request:", req.body);
+    console.log("📩 [SET PASSWORD] Request:", req.body);
 
     const { email, password } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -203,7 +205,7 @@ export const setPassword = async (req, res) => {
       { expiresIn: "1h" }
     );
 
-    console.log("✅ Password set success for:", email);
+    console.log("✅ [SET PASSWORD] Success for:", email);
 
     res.json({
       message: "Password set successfully",
@@ -216,7 +218,7 @@ export const setPassword = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("❌ Set password error:", error);
+    console.error("❌ [SET PASSWORD] Error:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -224,7 +226,7 @@ export const setPassword = async (req, res) => {
 // ====================== FORGOT PASSWORD ======================
 export const forgotPassword = async (req, res) => {
   try {
-    console.log("📩 Forgot password request:", req.body);
+    console.log("📩 [FORGOT PASSWORD] Request:", req.body);
 
     const { email } = req.body;
 
@@ -232,12 +234,12 @@ export const forgotPassword = async (req, res) => {
       email,
     ]);
     if (rows.length === 0) {
-      console.warn("⚠️ Forgot password: email not found:", email);
+      console.warn("⚠️ [FORGOT PASSWORD] Email not found:", email);
       return res.status(404).json({ message: "Email tidak ditemukan" });
     }
 
     if (!process.env.CORS_ORIGIN) {
-      console.error("❌ CORS_ORIGIN not defined in env");
+      console.error("❌ [FORGOT PASSWORD] CORS_ORIGIN not defined");
       return res
         .status(500)
         .json({ message: "Konfigurasi server tidak lengkap" });
@@ -260,11 +262,11 @@ export const forgotPassword = async (req, res) => {
       `,
     });
 
-    console.log("✅ Reset password link sent to:", email);
+    console.log("✅ [FORGOT PASSWORD] Reset link sent to:", email);
 
     res.json({ message: "Link reset password sudah dikirim ke email Anda" });
   } catch (err) {
-    console.error("❌ Forgot password error:", err);
+    console.error("❌ [FORGOT PASSWORD] Error:", err);
     res.status(500).json({ message: "Terjadi kesalahan server" });
   }
 };
@@ -273,7 +275,7 @@ export const forgotPassword = async (req, res) => {
 export const resetPassword = async (req, res) => {
   const { token, password } = req.body;
   try {
-    console.log("📩 Reset password request:", req.body);
+    console.log("📩 [RESET PASSWORD] Request:", req.body);
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -283,13 +285,13 @@ export const resetPassword = async (req, res) => {
       decoded.email,
     ]);
 
-    console.log("✅ Password reset success for:", decoded.email);
+    console.log("✅ [RESET PASSWORD] Success for:", decoded.email);
 
     res.json({
       message: "Password berhasil direset, silakan login dengan password baru",
     });
   } catch (error) {
-    console.error("❌ Reset password error:", error.message);
+    console.error("❌ [RESET PASSWORD] Error:", error.message);
     res
       .status(400)
       .json({ message: "Token tidak valid atau sudah kadaluarsa" });
