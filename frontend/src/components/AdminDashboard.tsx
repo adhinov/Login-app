@@ -21,17 +21,28 @@ export default function AdminDashboard() {
     try {
       setLoading(true);
       setError("");
+
       const token = localStorage.getItem("token");
+      if (!token) {
+        console.error("❌ No token found in localStorage");
+        setError("Token tidak ditemukan. Silakan login ulang.");
+        setLoading(false);
+        return;
+      }
+
+      const headers = {
+        Authorization: `Bearer ${token}`,
+      };
+
+      // 🔍 Debug log sebelum request
+      console.log("🔑 Sending Authorization header:", headers);
 
       const response = await axios.get(
         `${import.meta.env.VITE_API_URL}/api/users`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { headers }
       );
 
+      console.log("✅ Users fetched:", response.data);
       setUsers(response.data);
     } catch (err: any) {
       console.error("❌ Error fetching users:", err);
