@@ -11,9 +11,11 @@ export const getUserProfile = async (req, res) => {
     console.log("🔍 Fetch profile untuk userID:", req.user.id);
 
     const result = await pool.query(
-      `SELECT id, email, username, role, created_at, phone, last_login
-       FROM users 
-       WHERE id = $1`,
+      `SELECT u.id, u.email, u.username, u.phone_number AS phone, 
+              u.created_at, u.last_login, r.name AS role
+       FROM users u
+       JOIN roles r ON u.role_id = r.id
+       WHERE u.id = $1`,
       [req.user.id]
     );
 
@@ -39,9 +41,11 @@ export const getAllUsers = async (req, res) => {
     console.log("🔍 Admin", req.user?.email, "sedang fetch semua user...");
 
     const result = await pool.query(
-      `SELECT id, email, username, role, created_at, phone, last_login
-       FROM users 
-       ORDER BY id ASC`
+      `SELECT u.id, u.email, u.username, u.phone_number AS phone, 
+              u.created_at, u.last_login, r.name AS role
+       FROM users u
+       LEFT JOIN roles r ON u.role_id = r.id
+       ORDER BY u.id ASC`
     );
 
     console.log("✅ Jumlah user ditemukan:", result.rows.length);
