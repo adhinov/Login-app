@@ -1,4 +1,4 @@
-// src/pages/AdminDashboard.tsx
+// src/components/AdminDashboard.tsx
 import { useEffect, useState } from "react";
 import axios from "axios";
 
@@ -25,40 +25,18 @@ export default function AdminDashboard() {
       const apiUrl = import.meta.env.VITE_API_URL;
       const token = localStorage.getItem("token");
 
-      console.log("🌍 [DEBUG] API URL:", apiUrl);
-      console.log("🔑 [DEBUG] Token from localStorage:", token);
-
       if (!token) {
-        console.error("❌ No token found in localStorage");
         setError("Token tidak ditemukan. Silakan login ulang.");
         setLoading(false);
         return;
       }
 
-      const headers = {
-        Authorization: `Bearer ${token}`,
-      };
-
-      console.log("📡 [DEBUG] Sending headers:", headers);
-
+      const headers = { Authorization: `Bearer ${token}` };
       const response = await axios.get(`${apiUrl}/api/users`, { headers });
-
-      console.log("✅ [DEBUG] Users fetched:", response.data);
       setUsers(response.data);
     } catch (err: any) {
-      console.error("❌ [DEBUG] Error fetching users:", err);
-
-      if (err.response) {
-        console.error("📡 [DEBUG] Response status:", err.response.status);
-        console.error("📡 [DEBUG] Response data:", err.response.data);
-        console.error("📡 [DEBUG] Response headers:", err.response.headers);
-      } else if (err.request) {
-        console.error("📡 [DEBUG] No response received:", err.request);
-      } else {
-        console.error("📡 [DEBUG] Error setup:", err.message);
-      }
-
       setError("Gagal mengambil data pengguna. Lihat console untuk detail.");
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -66,8 +44,6 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     fetchUsers();
-
-    // Ambil last login dari localStorage (disimpan saat login)
     const last = localStorage.getItem("lastLogin");
     if (last) setLastLogin(last);
   }, []);
@@ -79,72 +55,78 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center py-8 px-4">
-      <div className="w-full max-w-6xl bg-white shadow-xl rounded-2xl p-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-200 flex flex-col items-center py-10 px-4 text-gray-800">
+      <div className="w-full max-w-4xl bg-white shadow-lg rounded-2xl p-8 border border-gray-200">
         {/* Header */}
-        <div className="flex justify-between items-center mb-6 border-b pb-4">
-          <h1 className="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
-          <button
-            onClick={handleLogout}
-            className="bg-red-500 text-white px-5 py-2 rounded-lg hover:bg-red-600 transition"
-          >
-            Logout
-          </button>
+        <div className="mb-6 border-b pb-4">
+          <h1 className="text-3xl font-extrabold text-gray-900">
+            Admin Dashboard
+          </h1>
+          {lastLogin && (
+            <p className="text-sm text-gray-700 mt-1">
+              <span className="font-semibold">Last Login (Anda):</span>{" "}
+              <span className="font-mono">
+                {new Date(lastLogin).toLocaleString("id-ID", {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                })}
+              </span>
+            </p>
+          )}
         </div>
 
-        {/* Last login info */}
-        {lastLogin && (
-          <p className="text-sm text-gray-600 mb-4">
-            <span className="font-semibold">Last Login (Anda):</span>{" "}
-            <span className="font-mono">{lastLogin}</span>
-          </p>
-        )}
-
         {/* Users Table */}
-        <h2 className="text-lg font-semibold text-gray-700 mb-3">
+        <h2 className="text-lg font-semibold text-gray-800 mb-4">
           Daftar Pengguna
         </h2>
 
         {loading ? (
-          <p className="text-gray-500">⏳ Memuat data...</p>
+          <div className="flex justify-center py-6">
+            <div className="animate-spin h-8 w-8 border-4 border-blue-400 border-t-transparent rounded-full"></div>
+          </div>
         ) : error ? (
           <p className="text-red-500">{error}</p>
         ) : users.length === 0 ? (
-          <p className="text-gray-500">Tidak ada data pengguna.</p>
+          <p className="text-gray-600">Tidak ada data pengguna.</p>
         ) : (
           <div className="overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
             <table className="w-full text-sm text-left border-collapse">
-              <thead className="bg-gray-50">
+              <thead>
                 <tr>
-                  <th className="px-4 py-3 border-b font-medium text-gray-600">ID</th>
-                  <th className="px-4 py-3 border-b font-medium text-gray-600">Email</th>
-                  <th className="px-4 py-3 border-b font-medium text-gray-600">Username</th>
-                  <th className="px-4 py-3 border-b font-medium text-gray-600">Role</th>
-                  <th className="px-4 py-3 border-b font-medium text-gray-600">Created At</th>
-                  <th className="px-4 py-3 border-b font-medium text-gray-600">Phone</th>
+                  <th className="table-header">ID</th>
+                  <th className="table-header">Email</th>
+                  <th className="table-header">Username</th>
+                  <th className="table-header">Role</th>
+                  <th className="table-header">Created At</th>
+                  <th className="table-header">Phone</th>
                 </tr>
               </thead>
               <tbody>
                 {users.map((u) => (
-                  <tr key={u.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-2 border-b">{u.id}</td>
-                    <td className="px-4 py-2 border-b">{u.email}</td>
-                    <td className="px-4 py-2 border-b">{u.username}</td>
-                    <td className="px-4 py-2 border-b">
+                  <tr
+                    key={u.id}
+                    className="hover:bg-gray-50 transition-colors text-gray-800"
+                  >
+                    <td className="table-cell">{u.id}</td>
+                    <td className="table-cell">{u.email}</td>
+                    <td className="table-cell">{u.username}</td>
+                    <td className="table-cell">
                       <span
-                        className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                        className={
                           u.role === "admin"
-                            ? "bg-red-100 text-red-600"
-                            : "bg-green-100 text-green-600"
-                        }`}
+                            ? "role-badge-admin"
+                            : "role-badge-user"
+                        }
                       >
                         {u.role}
                       </span>
                     </td>
-                    <td className="px-4 py-2 border-b">
-                      {new Date(u.created_at).toLocaleDateString()}
+                    <td className="table-cell">
+                      {new Date(u.created_at).toLocaleDateString("id-ID", {
+                        dateStyle: "medium",
+                      })}
                     </td>
-                    <td className="px-4 py-2 border-b">{u.phone || "-"}</td>
+                    <td className="table-cell">{u.phone || "-"}</td>
                   </tr>
                 ))}
               </tbody>
@@ -154,15 +136,18 @@ export default function AdminDashboard() {
 
         {/* Footer */}
         <div className="flex justify-between items-center mt-6">
-          <p className="text-sm text-gray-600">
-            Total Pengguna: <span className="font-semibold">{users.length}</span>
+          <p className="text-sm text-gray-700">
+            Total Pengguna:{" "}
+            <span className="font-semibold">{users.length}</span>
           </p>
-          <button
-            onClick={fetchUsers}
-            className="bg-blue-500 text-white px-5 py-2 rounded-lg hover:bg-blue-600 transition"
-          >
-            Refresh
-          </button>
+          <div className="flex gap-3">
+            <button onClick={fetchUsers} className="btn-primary">
+              Refresh
+            </button>
+            <button onClick={handleLogout} className="btn-danger">
+              Logout
+            </button>
+          </div>
         </div>
       </div>
     </div>
