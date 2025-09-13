@@ -1,6 +1,6 @@
-// src/components/AdminDashboard.tsx
 import { useEffect, useState } from "react";
 import axios from "axios";
+import "./global.css"; // penting agar style masuk
 
 interface User {
   id: number;
@@ -55,62 +55,51 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-200 flex flex-col items-center py-10 px-4 text-gray-800">
-      <div className="w-full max-w-4xl bg-white shadow-lg rounded-2xl p-8 border border-gray-200">
+    <div className="dashboard-container">
+      <div className="dashboard-box">
         {/* Header */}
-        <div className="mb-6 border-b pb-4">
-          <h1 className="text-3xl font-extrabold text-gray-900">
-            Admin Dashboard
-          </h1>
+        <div className="dashboard-header">
+          <h1>Admin Dashboard</h1>
           {lastLogin && (
-            <p className="text-sm text-gray-700 mt-1">
-              <span className="font-semibold">Last Login (Anda):</span>{" "}
-              <span className="font-mono">
-                {new Date(lastLogin).toLocaleString("id-ID", {
-                  dateStyle: "medium",
-                  timeStyle: "short",
-                })}
-              </span>
+            <p>
+              <strong>Last Login (Anda):</strong>{" "}
+              {new Date(lastLogin).toLocaleString("id-ID", {
+                dateStyle: "medium",
+                timeStyle: "short",
+              })}
             </p>
           )}
         </div>
 
         {/* Users Table */}
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">
-          Daftar Pengguna
-        </h2>
+        <h2>Daftar Pengguna</h2>
 
         {loading ? (
-          <div className="flex justify-center py-6">
-            <div className="animate-spin h-8 w-8 border-4 border-blue-400 border-t-transparent rounded-full"></div>
-          </div>
+          <p>Sedang memuat data...</p>
         ) : error ? (
-          <p className="text-red-500">{error}</p>
+          <p style={{ color: "red" }}>{error}</p>
         ) : users.length === 0 ? (
-          <p className="text-gray-600">Tidak ada data pengguna.</p>
+          <p>Tidak ada data pengguna.</p>
         ) : (
-          <div className="overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
-            <table className="w-full text-sm text-left border-collapse">
+          <div className="table-wrapper">
+            <table>
               <thead>
                 <tr>
-                  <th className="table-header">ID</th>
-                  <th className="table-header">Email</th>
-                  <th className="table-header">Username</th>
-                  <th className="table-header">Role</th>
-                  <th className="table-header">Created At</th>
-                  <th className="table-header">Phone</th>
+                  <th>ID</th>
+                  <th>Email</th>
+                  <th>Username</th>
+                  <th>Role</th>
+                  <th>Created At</th>
+                  <th>Phone</th>
                 </tr>
               </thead>
               <tbody>
                 {users.map((u) => (
-                  <tr
-                    key={u.id}
-                    className="hover:bg-gray-50 transition-colors text-gray-800"
-                  >
-                    <td className="table-cell">{u.id}</td>
-                    <td className="table-cell">{u.email}</td>
-                    <td className="table-cell">{u.username}</td>
-                    <td className="table-cell">
+                  <tr key={u.id}>
+                    <td>{u.id}</td>
+                    <td>{u.email}</td>
+                    <td>{u.username}</td>
+                    <td>
                       <span
                         className={
                           u.role === "admin"
@@ -121,12 +110,12 @@ export default function AdminDashboard() {
                         {u.role}
                       </span>
                     </td>
-                    <td className="table-cell">
+                    <td>
                       {new Date(u.created_at).toLocaleDateString("id-ID", {
                         dateStyle: "medium",
                       })}
                     </td>
-                    <td className="table-cell">{u.phone || "-"}</td>
+                    <td>{u.phone || "-"}</td>
                   </tr>
                 ))}
               </tbody>
@@ -135,12 +124,11 @@ export default function AdminDashboard() {
         )}
 
         {/* Footer */}
-        <div className="flex justify-between items-center mt-6">
-          <p className="text-sm text-gray-700">
-            Total Pengguna:{" "}
-            <span className="font-semibold">{users.length}</span>
+        <div className="dashboard-footer">
+          <p>
+            Total Pengguna: <strong>{users.length}</strong>
           </p>
-          <div className="flex gap-3">
+          <div className="actions">
             <button onClick={fetchUsers} className="btn-primary">
               Refresh
             </button>
