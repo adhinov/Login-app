@@ -230,6 +230,7 @@ export const forgotPassword = async (req, res) => {
 
     const { email } = req.body;
 
+    // Cek apakah email ada di DB
     const { rows } = await pool.query("SELECT * FROM users WHERE email = $1", [
       email,
     ]);
@@ -238,27 +239,30 @@ export const forgotPassword = async (req, res) => {
       return res.status(404).json({ message: "Email tidak ditemukan" });
     }
 
-    if (!process.env.CORS_ORIGIN) {
-      console.error("❌ [FORGOT PASSWORD] CORS_ORIGIN not defined");
+    if (!process.env.FRONTEND_URL) {
+      console.error("❌ [FORGOT PASSWORD] FRONTEND_URL not defined");
       return res
         .status(500)
         .json({ message: "Konfigurasi server tidak lengkap" });
     }
 
-    const token = jwt.sign({ email }, process.env.JWT_SECRET, {
+    // Buat token reset password
+    const token = jwt.sign({ email }, process.env.JWT_RESET_SECRET, {
       expiresIn: "1h",
     });
 
-    const resetLink = `${process.env.CORS_ORIGIN}/reset-password?token=${token}`;
+    // Gunakan FRONTEND_URL sebagai base link
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
 
+    // Kirim email via Resend
     await resend.emails.send({
-      from: "onboarding@resend.dev",
+      from: process.env.EMAIL_FROM || "onboarding@resend.dev",
       to: email,
       subject: "Reset Password - Login App",
       html: `
         <p>Kami menerima permintaan reset password untuk akun Anda.</p>
         <p>Klik link berikut untuk reset password (berlaku 1 jam):</p>
-        <a href="${resetLink}">Reset Password</a>
+        <a href="${resetLink}">${resetLink}</a>
       `,
     });
 
@@ -277,9 +281,13 @@ export const resetPassword = async (req, res) => {
   try {
     console.log("📩 [RESET PASSWORD] Request:", req.body);
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    // Verifikasi token pakai JWT_RESET_SECRET
+    const decoded = jwt.verify(token, process.env.JWT_RESET_SECRET);
+
+    // Hash password baru
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Update password di DB
     await pool.query("UPDATE users SET password = $1 WHERE email = $2", [
       hashedPassword,
       decoded.email,

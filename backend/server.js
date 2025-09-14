@@ -44,7 +44,7 @@ try {
 app.use(morgan("dev"));
 app.use(express.json());
 
-// Allowed origins
+// Allowed origins (multi-domain from .env)
 const allowedOrigins = (process.env.CORS_ORIGIN || "")
   .split(",")
   .map((o) => o.trim())
@@ -92,6 +92,8 @@ app.get("/api/health", (req, res) => {
     status: "ok",
     message: "✅ Backend API is running...",
     db: pool ? "connected" : "not connected",
+    frontend_url: process.env.FRONTEND_URL || "not set",
+    allowedOrigins,
   });
 });
 
