@@ -17,6 +17,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
 
+  // Ambil daftar user (khusus admin)
   const fetchUsers = async () => {
     try {
       setLoading(true);
@@ -32,8 +33,9 @@ export default function AdminDashboard() {
       }
 
       const headers = { Authorization: `Bearer ${token}` };
-      const response = await axios.get(`${apiUrl}/api/users`, { headers });
-      setUsers(response.data);
+      const response = await axios.get(`${apiUrl}/api/admin/users`, { headers });
+
+      setUsers(response.data.users || []);
     } catch (err: any) {
       setError("Gagal mengambil data pengguna. Lihat console untuk detail.");
       console.error(err);
@@ -42,15 +44,32 @@ export default function AdminDashboard() {
     }
   };
 
+  // Ambil info lastLogin admin
+  const fetchLastLogin = async () => {
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL;
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      const res = await axios.get(`${apiUrl}/api/auth/last-login`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (res.data?.lastLogin) {
+        setLastLogin(res.data.lastLogin);
+      }
+    } catch (err) {
+      console.error("❌ Gagal ambil last login:", err);
+    }
+  };
+
   useEffect(() => {
     fetchUsers();
-    const last = localStorage.getItem("lastLogin");
-    if (last) setLastLogin(last);
+    fetchLastLogin();
   }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
-    localStorage.removeItem("lastLogin");
     window.location.href = "/login";
   };
 
