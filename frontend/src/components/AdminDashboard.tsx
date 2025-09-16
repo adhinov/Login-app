@@ -13,7 +13,7 @@ interface User {
 
 export default function AdminDashboard() {
   const [users, setUsers] = useState<User[]>([]);
-  const [lastLogin, setLastLogin] = useState<string>("");
+  const [lastLogin, setLastLogin] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
 
@@ -44,32 +44,19 @@ export default function AdminDashboard() {
     }
   };
 
-  // Ambil info lastLogin admin
-  const fetchLastLogin = async () => {
-    try {
-      const apiUrl = import.meta.env.VITE_API_URL;
-      const token = localStorage.getItem("token");
-      if (!token) return;
-
-      const res = await axios.get(`${apiUrl}/api/auth/last-login`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (res.data?.lastLogin) {
-        setLastLogin(res.data.lastLogin);
-      }
-    } catch (err) {
-      console.error("❌ Gagal ambil last login:", err);
-    }
-  };
-
   useEffect(() => {
     fetchUsers();
-    fetchLastLogin();
+
+    // Ambil last login sebelumnya dari localStorage
+    const storedLastLogin = localStorage.getItem("previousLogin");
+    if (storedLastLogin) {
+      setLastLogin(storedLastLogin);
+    }
   }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("previousLogin");
     window.location.href = "/login";
   };
 
