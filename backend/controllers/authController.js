@@ -46,60 +46,55 @@ export const register = async (req, res) => {
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
-    console.log("📩 [LOGIN] Attempt:", { email });
 
-    const result = await pool.query(
-      `SELECT u.id, u.username, u.email, u.password, u.last_login, r.name AS role
-       FROM users u
-       JOIN roles r ON u.role_id = r.id
-       WHERE u.email = $1`,
+    // Cari user
+    const userResult = await pool.query(
+      "SELECT u.*, r.name as role_name FROM users u JOIN roles r ON u.role_id = r.id WHERE email = $1",
       [email]
     );
-
-    if (result.rows.length === 0) {
-      console.warn("❌ [LOGIN] User not found:", email);
-      return res.status(404).json({ message: "User not found" });
+    if (userResult.rows.length === 0) {
+      return res
+        .status(401)
+        .json({ success: false, message: "User tidak ditemukan" });
     }
 
-    const user = result.rows[0];
+    const user = userResult.rows[0];
 
+    // Cek password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      console.warn("❌ [LOGIN] Invalid password for:", email);
-      return res.status(401).json({ message: "Invalid credentials" });
+      return res.status(401).json({ success: false, message: "Password salah" });
     }
 
-    const lastLoginBefore = user.last_login;
+    // Simpan last login lama (sebelum update)
+    const previousLogin = user.last_login;
 
-    // update last_login ke waktu sekarang (UTC+7)
-    await pool.query(
-      "UPDATE users SET last_login = NOW() + INTERVAL '7 hours' WHERE id = $1",
-      [user.id]
+    // Update last login ke waktu sekarang
+    await pool.query("UPDATE users SET last_login = NOW() WHERE id = $1", [
+      user.id,
+    ]);
+
+    // Buat token (role pakai nama role, bukan id)
+    const token = jwt.sign(
+      { id: user.id, email: user.email, role: user.role_name },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
     );
 
-    // payload JWT
-    const payload = { id: user.id, email: user.email, role: user.role };
-    console.log("🔑 [LOGIN] JWT payload:", payload);
-
-    const token = jwt.sign(payload, process.env.JWT_SECRET, {
-      expiresIn: "1h",
-    });
-
-    console.log("✅ [LOGIN] Token generated");
-
-    res.json({
+    return res.json({
+      success: true,
       token,
       user: {
         id: user.id,
-        username: user.username,
         email: user.email,
-        role: user.role,
-        last_login: lastLoginBefore,
+        username: user.username,
+        role: user.role_name,
       },
+      previousLogin, // ⬅️ ini untuk dashboard
     });
-  } catch (error) {
-    console.error("❌ [LOGIN] Server error:", error);
-    res.status(500).json({ message: "Server error" });
+  } catch (err) {
+    console.error("❌ Error login:", err.message);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
