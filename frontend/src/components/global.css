@@ -1,15 +1,17 @@
 /* ================= GLOBAL BASE ================= */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
+
 html, body, #root {
   margin: 0;
   padding: 0;
   height: 100%;
   background-color: #b5b5b6;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif, Arial;
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif, Arial;
   color: #d8d8d8;
+  font-weight: 400; /* default normal */
 }
 
 /* ================= FORM STYLES ================= */
-/* Mengatur Login, Signup, ForgotPassword, ResetPassword */
 .form-container {
   display: flex;
   justify-content: center;
@@ -35,7 +37,7 @@ html, body, #root {
 .form-title {
   text-align: left;
   font-size: 1.72rem;
-  font-weight: thin;
+  font-weight: 300; /* lebih ringan dari normal */
   margin-top: 0.1rem;
   margin-bottom: 1rem;
 }
@@ -82,13 +84,12 @@ html, body, #root {
   border: none;
   border-radius: 30px;
   font-size: 1rem;
-  font-weight: 500; /* semula bold (700), dikurangi jadi 600 */
+  font-weight: 600; /* konsisten tebal */
   cursor: pointer;
   transition: background 0.3s ease;
   background-color: rgb(72, 212, 33);
   color: rgb(255, 255, 255);
 }
-
 .form-button:hover { background-color: #17ae1a; }
 
 .form-footer { text-align: center; font-size: 0.85rem; margin-top: 0.9rem; color: #d8d8d8; }
@@ -124,14 +125,13 @@ html, body, #root {
 .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); display: flex; align-items: center; justify-content: center; z-index: 999; }
 .modal-box { background: #fff; color: #333; padding: 20px 30px; border-radius: 12px; text-align: center; max-width: 400px; width: 100%; box-shadow: 0px 4px 12px rgba(0,0,0,0.2); animation: fadeIn 0.3s ease-in-out; }
 .modal-box h3 { margin-bottom: 10px; color: #16a34a; }
-.modal-button { margin-top: 15px; padding: 8px 20px; background: #16a34a; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+.modal-button { margin-top: 15px; padding: 8px 20px; background: #16a34a; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 700; }
 .modal-button:hover { background: #15803d; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
 @media (max-width: 480px) {
   .form-box { max-width: 320px; padding: 1.2rem; }
-  .form-title { font-size: 1.4rem; }
-  /* Tombol lebih besar khusus HP */
+  .form-title { font-size: 1.4rem; font-weight: 400; }
   .form-button { 
     font-size: 1rem; 
     padding: 1rem; 
@@ -166,21 +166,19 @@ html, body, #root {
   padding-bottom: 1rem;
   margin-bottom: 1.5rem;
 }
-
 .dashboard-header h1 {
   font-size: 28px;
   font-weight: 800;
   color: #111827;
   margin: 0;
 }
-
 .dashboard-header p {
   font-size: 14px;
   margin-top: 0.5rem;
   color: #374151;
 }
 
-/* Table wrapper */
+/* Table */
 .table-wrapper {
   overflow-x: auto;
   border: 1px solid #c4c5c8;
@@ -189,12 +187,7 @@ html, body, #root {
   margin: auto;
   max-width: 900px;
 }
-
-.table-wrapper table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
+.table-wrapper table { width: 100%; border-collapse: collapse; }
 .table-wrapper th {
   background: #f9fafb;
   text-align: left;
@@ -204,17 +197,13 @@ html, body, #root {
   color: #374151;
   border-bottom: 1px solid #c4c5c8;
 }
-
 .table-wrapper td {
   padding: 8px 10px;
   font-size: 14px;
   border-bottom: 1px solid #f1f5f9;
   color: #374151;
 }
-
-.table-wrapper tr:hover {
-  background-color: #f9fafb;
-}
+.table-wrapper tr:hover { background-color: #f9fafb; }
 
 /* Badge Role */
 .role-badge-admin {
@@ -225,7 +214,6 @@ html, body, #root {
   font-size: 12px;
   font-weight: 600;
 }
-
 .role-badge-user {
   background: #dcfce7;
   color: #15803d;
@@ -269,7 +257,6 @@ html, body, #root {
   font-size: 14px;
   color: #374151;
 }
-
 .dashboard-footer .actions {
   display: flex;
   gap: 0.8rem;
@@ -282,12 +269,11 @@ html, body, #root {
   align-items: center;
   min-height: 100vh;
   background-color: #b5b5b6;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   color: #e1ff00;
   padding: 20px;
   box-sizing: border-box;
 }
-
 .welcome-box {
   background-color: #1e293b;
   padding: 40px;
@@ -297,18 +283,13 @@ html, body, #root {
   max-width: 400px;
   width: 100%;
 }
-
 .welcome-box h1 {
   margin-bottom: 20px;
   font-size: 26px;
+  font-weight: 600;
   color: #60a5fa;
 }
-
-.welcome-box p {
-  font-size: 16px;
-  margin-bottom: 20px;
-}
-
+.welcome-box p { font-size: 16px; margin-bottom: 20px; }
 .welcome-box button {
   background-color: #0048bc;
   border: none;
@@ -320,10 +301,7 @@ html, body, #root {
   transition: background 0.2s ease;
   width: 100%;
 }
-
-.welcome-box button:hover {
-  background-color: #eb2525;
-}
+.welcome-box button:hover { background-color: #eb2525; }
 
 .error-message {
   color: red;
