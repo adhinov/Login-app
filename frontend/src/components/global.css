@@ -75,10 +75,9 @@ html, body, #root {
 .input-icon { color: #7b7b7b; font-size: 0.9rem; }
 .toggle-password { position: absolute; right: 10px; color: #ccc; cursor: pointer; }
 
-/* Tombol utama */
 .form-button {
   width: 100%;
-  padding: 0.45rem; /* lebih tebal default */
+  padding: 0.70rem;
   margin-top: 0.7rem;
   border: none;
   border-radius: 30px;
@@ -131,12 +130,7 @@ html, body, #root {
 @media (max-width: 480px) {
   .form-box { max-width: 320px; padding: 1.2rem; }
   .form-title { font-size: 1.4rem; }
-  /* Tombol lebih besar khusus HP */
-  .form-button { 
-    font-size: 1rem; 
-    padding: 1rem; 
-    border-radius: 35px;
-  }
+  .form-button { font-size: 0.9rem; padding: 0.45rem; }
 }
 
 /* ================= ADMIN DASHBOARD ================= */
@@ -147,7 +141,7 @@ html, body, #root {
   justify-content: center;
   align-items: flex-start;
   padding: 2rem;
-  color: #374151;
+  color: #374151; /* dark grey font */
 }
 
 .dashboard-box {
@@ -156,7 +150,7 @@ html, body, #root {
   border-radius: 14px;
   padding: 2rem;
   width: 100%;
-  max-width: 950px;
+  max-width: 950px;  /* batasi max width tabel */
   box-shadow: 0 4px 15px rgba(0,0,0,0.05);
 }
 
