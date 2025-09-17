@@ -75,20 +75,20 @@ html, body, #root {
 .input-icon { color: #7b7b7b; font-size: 0.9rem; }
 .toggle-password { position: absolute; right: 10px; color: #ccc; cursor: pointer; }
 
-/* Tombol utama */
 .form-button {
   width: 100%;
-  padding: 0.85rem; /* lebih tebal default */
+  padding: 0.70rem;
   margin-top: 0.7rem;
   border: none;
   border-radius: 30px;
-  font-size: 1.05rem;
-  font-weight: bold;
+  font-size: 1rem;
+  font-weight: 600; /* semula bold (700), dikurangi jadi 600 */
   cursor: pointer;
   transition: background 0.3s ease;
   background-color: rgb(72, 212, 33);
   color: rgb(255, 255, 255);
 }
+
 .form-button:hover { background-color: #17ae1a; }
 
 .form-footer { text-align: center; font-size: 0.85rem; margin-top: 0.9rem; color: #d8d8d8; }
