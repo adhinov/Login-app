@@ -42,76 +42,87 @@ export const register = async (req, res) => {
   }
 };
 
-// ==================== LOGIN ====================
+// ====================== LOGIN ======================
 export const login = async (req, res) => {
-  const { email, password } = req.body;
-
   try {
-    // Cek user ada atau tidak
-    const [rows] = await db.query("SELECT * FROM users WHERE email = ?", [email]);
-    if (rows.length === 0) {
-      return res.status(400).json({ message: "Email tidak ditemukan" });
+    const { email, password } = req.body;
+
+    // Cari user + join role
+    const result = await pool.query(
+      `SELECT u.*, r.name as role_name 
+       FROM users u 
+       JOIN roles r ON u.role_id = r.id 
+       WHERE u.email = $1`,
+      [email]
+    );
+
+    if (result.rows.length === 0) {
+      return res
+        .status(401)
+        .json({ success: false, message: "User tidak ditemukan" });
     }
 
-    const user = rows[0];
+    const user = result.rows[0];
 
     // Cek password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(400).json({ message: "Password salah" });
+      return res
+        .status(401)
+        .json({ success: false, message: "Password salah" });
     }
 
-    // Generate JWT
+    // Simpan last login lama sebelum update
+    const previousLogin = user.last_login;
+
+    // Update last login ke waktu sekarang (UTC+7 misal)
+    await pool.query(
+      "UPDATE users SET last_login = NOW() WHERE id = $1",
+      [user.id]
+    );
+
+    // Buat token
     const token = jwt.sign(
-      { id: user.id, email: user.email, role: user.role },
+      { id: user.id, email: user.email, role: user.role_name },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
 
-    // Update last_login
-    await db.query("UPDATE users SET last_login = NOW() WHERE id = ?", [user.id]);
-
-    // Ambil last_login terbaru
-    const [updated] = await db.query(
-      "SELECT last_login FROM users WHERE id = ?",
-      [user.id]
-    );
-
     return res.json({
-      message: "Login berhasil",
+      success: true,
       token,
       user: {
         id: user.id,
         email: user.email,
         username: user.username,
-        role: user.role,
-        last_login: updated[0].last_login,
+        role: user.role_name,
       },
+      previousLogin, // <-- yang ditampilkan di AdminDashboard
     });
   } catch (err) {
-    console.error("Login error:", err);
-    return res.status(500).json({ message: "Terjadi kesalahan server" });
+    console.error("❌ Error login:", err.message);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
-// ==================== LAST LOGIN ====================
+// ====================== LAST LOGIN ENDPOINT ======================
 export const getLastLogin = async (req, res) => {
   try {
     const userId = req.user.id; // dari verifyToken middleware
 
-    const [rows] = await db.query(
-      "SELECT last_login FROM users WHERE id = ?",
+    const result = await pool.query(
+      "SELECT last_login FROM users WHERE id = $1",
       [userId]
     );
 
-    if (rows.length === 0) {
+    if (result.rows.length === 0) {
       return res.status(404).json({ message: "User tidak ditemukan" });
     }
 
-    return res.json({ lastLogin: rows[0].last_login });
+    res.json({ lastLogin: result.rows[0].last_login });
   } catch (err) {
-    console.error("GetLastLogin error:", err);
-    return res.status(500).json({ message: "Terjadi kesalahan server" });
+    console.error("❌ Error getLastLogin:", err.message);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
