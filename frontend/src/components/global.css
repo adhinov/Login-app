@@ -141,7 +141,7 @@ html, body, #root {
   justify-content: center;
   align-items: flex-start;
   padding: 2rem;
-  color: #374151; /* dark grey font */
+  color: #374151;
 }
 
 .dashboard-box {
@@ -150,7 +150,7 @@ html, body, #root {
   border-radius: 14px;
   padding: 2rem;
   width: 100%;
-  max-width: 950px;  /* batasi max width tabel */
+  max-width: 950px;
   box-shadow: 0 4px 15px rgba(0,0,0,0.05);
 }
 
