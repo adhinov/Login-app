@@ -78,7 +78,7 @@ html, body, #root {
 /* Tombol utama */
 .form-button {
   width: 100%;
-  padding: 0.55rem; /* lebih tebal default */
+  padding: 0.45rem; /* lebih tebal default */
   margin-top: 0.7rem;
   border: none;
   border-radius: 30px;
