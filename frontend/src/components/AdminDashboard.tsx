@@ -8,7 +8,7 @@ interface User {
   username: string;
   role: string;
   created_at: string;
-  phone: string;
+  phone_number: string;
 }
 
 export default function AdminDashboard() {
@@ -121,7 +121,7 @@ export default function AdminDashboard() {
                         dateStyle: "medium",
                       })}
                     </td>
-                    <td>{u.phone || "-"}</td>
+                    <td>{u.phone_number || "-"}</td>
                   </tr>
                 ))}
               </tbody>
