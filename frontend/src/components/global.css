@@ -32,6 +32,13 @@ html, body, #root {
   color: #d8d8d8;
 }
 
+/* hint password */
+.password-hint {
+  font-size: 12px;       /* lebih kecil */
+  color: #FFD700;        /* kuning */
+  margin-top: 4px;
+}
+
 .form-title {
   text-align: left;
   font-size: 1.72rem;

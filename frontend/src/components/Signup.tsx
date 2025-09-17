@@ -142,7 +142,8 @@ const Signup = () => {
               {showPassword ? <FaEyeSlash /> : <FaEye />}
             </span>
           </div>
-          <small className="note">Panjang password minimal 6 karakter</small>
+          {/* hint password dibuat kecil & kuning */}
+          <p className="password-hint">Panjang password minimal 6 karakter</p>
         </div>
 
         <button className="form-button black" onClick={handleSignup}>
