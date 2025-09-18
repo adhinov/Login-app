@@ -126,123 +126,72 @@ export const getLastLogin = async (req, res) => {
   }
 };
 
-// ====================== GOOGLE LOGIN ======================
+// ==================== GOOGLE LOGIN ====================
 export const googleLogin = async (req, res) => {
   try {
-    console.log("📩 [GOOGLE LOGIN] Request body:", req.body);
-
-    const { token } = req.body;
-    if (!token) {
-      console.warn("⚠️ [GOOGLE LOGIN] Token not provided");
-      return res.status(400).json({ message: "Token not provided" });
+    const { email, username } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: "Email diperlukan." });
     }
 
-    const decoded = await admin.auth().verifyIdToken(token);
-    const { email, name } = decoded;
-
-    console.log("🔑 [GOOGLE LOGIN] Token decoded:", decoded);
-
-    let result = await pool.query(
-      `SELECT u.id, u.username, u.email, u.last_login, r.name AS role
-       FROM users u
-       JOIN roles r ON u.role_id = r.id
-       WHERE u.email = $1`,
-      [email]
-    );
+    // Cek user sudah ada atau belum
+    const [rows] = await db.query("SELECT * FROM users WHERE email = ?", [
+      email,
+    ]);
 
     let user;
-    if (result.rows.length === 0) {
-      const defaultRoleId = 2;
-      const insert = await pool.query(
-        "INSERT INTO users (username, email, role_id) VALUES ($1, $2, $3) RETURNING id, username, email",
-        [name || email.split("@")[0], email, defaultRoleId]
+    if (rows.length === 0) {
+      // Jika user belum ada → buat akun baru tanpa password
+      await db.query(
+        "INSERT INTO users (email, username, role) VALUES (?, ?, ?)",
+        [email, username || email.split("@")[0], "user"]
       );
-      user = insert.rows[0];
-
-      const roleRes = await pool.query(
-        "SELECT name AS role FROM roles WHERE id = $1",
-        [defaultRoleId]
-      );
-      user.role = roleRes.rows[0].role;
-
-      console.log("🆕 [GOOGLE LOGIN] New user registered:", email);
+      const [newUser] = await db.query("SELECT * FROM users WHERE email = ?", [
+        email,
+      ]);
+      user = newUser[0];
     } else {
-      user = result.rows[0];
-      console.log("🔄 [GOOGLE LOGIN] Existing user login:", email);
+      user = rows[0];
     }
 
-    const lastLoginBefore = user.last_login;
-
-    await pool.query(
-      "UPDATE users SET last_login = NOW() + INTERVAL '7 hours' WHERE id = $1",
-      [user.id]
-    );
-
-    const jwtToken = jwt.sign(
-      { id: user.id, role: user.role },
+    // Buat JWT khusus untuk alur set password
+    const token = jwt.sign(
+      { email: user.email }, // hanya email, tanpa password
       process.env.JWT_SECRET,
-      { expiresIn: "1h" }
+      { expiresIn: "15m" } // token singkat, misal 15 menit
     );
 
-    res.json({
-      token: jwtToken,
-      user: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        role: user.role,
-        last_login: lastLoginBefore,
-      },
-    });
-  } catch (error) {
-    console.error("❌ [GOOGLE LOGIN] Error:", error);
-    res.status(500).json({ message: "Server error" });
+    res.json({ token });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ message: "Gagal login Google.", error: err.message });
   }
 };
 
-// ====================== SET PASSWORD ======================
+// ==================== SET PASSWORD ====================
 export const setPassword = async (req, res) => {
   try {
-    console.log("📩 [SET PASSWORD] Request:", req.body);
+    const { password } = req.body;
+    const email = req.user.email; // dari verifyToken
 
-    const { email, password } = req.body;
+    if (!password || password.length < 6) {
+      return res
+        .status(400)
+        .json({ message: "Password minimal 6 karakter." });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
-
-    await pool.query("UPDATE users SET password = $1 WHERE email = $2", [
+    await db.query("UPDATE users SET password = ? WHERE email = ?", [
       hashedPassword,
       email,
     ]);
 
-    const result = await pool.query(
-      `SELECT u.id, u.username, u.email, r.name AS role
-       FROM users u
-       JOIN roles r ON u.role_id = r.id
-       WHERE u.email = $1`,
-      [email]
-    );
-
-    const user = result.rows[0];
-    const token = jwt.sign(
-      { id: user.id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: "1h" }
-    );
-
-    console.log("✅ [SET PASSWORD] Success for:", email);
-
-    res.json({
-      message: "Password set successfully",
-      token,
-      user: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        role: user.role,
-      },
-    });
-  } catch (error) {
-    console.error("❌ [SET PASSWORD] Error:", error);
-    res.status(500).json({ message: "Server error" });
+    res.json({ message: "Password berhasil disetel." });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ message: "Gagal menyimpan password.", error: err.message });
   }
 };
 
