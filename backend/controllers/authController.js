@@ -5,9 +5,13 @@ import pool from "../config/db.js";
 import dotenv from "dotenv";
 import { Resend } from "resend";
 import admin from "../config/firebaseAdmin.js";
+import { OAuth2Client } from "google-auth-library";
 
 dotenv.config();
 const resend = new Resend(process.env.RESEND_API_KEY);
+// Setup Google OAuth client
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // ====================== REGISTER ======================
 export const register = async (req, res) => {
@@ -126,69 +130,60 @@ export const getLastLogin = async (req, res) => {
   }
 };
 
-// ==================== GOOGLE LOGIN ====================
+// ==================== LOGIN GOOGLE ====================
 export const googleLogin = async (req, res) => {
   try {
     console.log("🔹 [DEBUG] Google login request:", req.body);
 
     const { token } = req.body;
     if (!token) {
-      return res.status(400).json({ message: "Token tidak ditemukan." });
+      return res.status(400).json({ error: "Google token is required" });
     }
 
     // Verifikasi token Google
     const ticket = await googleClient.verifyIdToken({
       idToken: token,
-      audience: process.env.GOOGLE_CLIENT_ID,
+      audience: process.env.GOOGLE_CLIENT_ID, // harus sama dengan Client ID dari Firebase
     });
 
     const payload = ticket.getPayload();
-    console.log("✅ [DEBUG] Google payload:", payload);
-
-    const email = payload.email;
-    const username = payload.name || email.split("@")[0];
-
-    // Cek user di DB (pakai Postgres)
-    const result = await pool.query("SELECT * FROM users WHERE email = $1", [
-      email,
-    ]);
-
-    let user;
-    if (result.rows.length === 0) {
-      // insert user baru
-      const defaultRoleId = 2; // default user
-      const insert = await pool.query(
-        "INSERT INTO users (username, email, role_id) VALUES ($1, $2, $3) RETURNING *",
-        [username, email, defaultRoleId]
-      );
-      user = insert.rows[0];
-      console.log("✅ [DEBUG] User baru dibuat:", user.email);
-    } else {
-      user = result.rows[0];
-      console.log("✅ [DEBUG] User ditemukan:", user.email);
+    if (!payload) {
+      return res.status(400).json({ error: "Invalid Google token" });
     }
 
-    // Buat JWT
-    const tokenJwt = jwt.sign(
-      { id: user.id, email: user.email, role: user.role_id === 1 ? "admin" : "user" },
+    const { email, name, picture } = payload;
+
+    // Cek apakah user sudah ada di DB
+    const [rows] = await pool.query("SELECT * FROM users WHERE email = ?", [email]);
+    let user = rows[0];
+
+    if (!user) {
+      // Jika user belum ada → buat baru
+      const [result] = await pool.query(
+        "INSERT INTO users (username, email, role) VALUES (?, ?, ?)",
+        [name, email, "user"]
+      );
+      user = { id: result.insertId, username: name, email, role: "user" };
+      console.log("✅ [DEBUG] New user created via Google:", user);
+    } else {
+      console.log("✅ [DEBUG] Existing user found:", user);
+    }
+
+    // Generate JWT untuk aplikasi kita
+    const appToken = jwt.sign(
+      { id: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
 
-    res.json({
-      message: "Google login success",
-      token: tokenJwt,
-      user: {
-        id: user.id,
-        email: user.email,
-        username: user.username,
-        role: user.role_id === 1 ? "admin" : "user",
-        role_id: user.role_id,
-      },
+    return res.json({
+      message: "Google login successful",
+      token: appToken,
+      user,
     });
-  } catch (err) {
-    console.error("❌ [DEBUG] Google login error:", err.message);
-    res.status(400).json({ message: "Google login gagal", error: err.message });
+  } catch (error) {
+    console.error("❌ [DEBUG] Google login error:", error.message);
+    return res.status(400).json({ error: "Google login failed" });
   }
 };
 

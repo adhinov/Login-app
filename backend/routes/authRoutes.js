@@ -11,6 +11,7 @@ import {
 import { verifyToken } from "../middleware/verifyToken.js";
 import { isAdmin } from "../middleware/isAdmin.js";
 import db from "../config/db.js";
+import { googleLogin } from "../controllers/authController.js";
 
 const router = express.Router();
 
