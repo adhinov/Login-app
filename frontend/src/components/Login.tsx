@@ -5,7 +5,7 @@ import { FcGoogle } from "react-icons/fc";
 import { Link, useNavigate } from "react-router-dom";
 import axios, { type AxiosResponse } from "axios";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { auth } from "../firebase"; // ✅ hanya ambil auth
+import { auth } from "../firebase";
 import "./global.css";
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -43,38 +43,25 @@ const Login = () => {
         // ✅ Normalisasi role
         const userRole =
           user.role?.toLowerCase() || (user.role_id === 1 ? "admin" : "user");
-
         localStorage.setItem("role", userRole);
 
-        // ✅ Geser lastLogin ke previousLogin (hanya jika ada data lama)
+        // ✅ Simpan last login
         const oldLastLogin = localStorage.getItem("lastLogin");
         if (oldLastLogin) {
           localStorage.setItem("previousLogin", oldLastLogin);
         }
-
-        // ✅ Simpan login saat ini sebagai lastLogin baru
         localStorage.setItem("lastLogin", new Date().toISOString());
 
-        console.log("✅ [DEBUG] Token tersimpan:", token);
-        console.log("✅ [DEBUG] User tersimpan:", user);
-        console.log("✅ [DEBUG] Role terdeteksi:", userRole);
-
         if (userRole === "admin") {
-          console.log("➡️ Redirect ke /adminDashboard");
           navigate("/adminDashboard", { replace: true });
         } else {
-          console.log("➡️ Redirect ke /welcome");
           navigate("/welcome", {
-            state: {
-              email: user.email,
-              username: user.username || "User",
-            },
+            state: { email: user.email, username: user.username || "User" },
             replace: true,
           });
         }
       } else {
         setMessage("Login gagal. Data tidak valid.");
-        console.warn("⚠️ [DEBUG] Login gagal. Data tidak valid.");
       }
     } catch (err: any) {
       if (axios.isAxiosError(err)) {
@@ -86,20 +73,19 @@ const Login = () => {
       }
     } finally {
       setLoading(false);
-      console.log("🔹 [DEBUG] Login process selesai");
     }
   };
 
   // ================= LOGIN GOOGLE =================
   const handleGoogleLogin = async () => {
     try {
-      const provider = new GoogleAuthProvider(); // ✅ bikin provider langsung
+      const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
       const idToken = await user.getIdToken();
+      console.log("🔹 [DEBUG] Google ID Token:", idToken.substring(0, 30) + "...");
 
-      // Kirim token ke backend untuk verifikasi / signup otomatis
       const res: AxiosResponse<{
         token: string;
         user: { role?: string; role_id?: number; email: string; username?: string };
@@ -113,22 +99,20 @@ const Login = () => {
       localStorage.setItem("user", JSON.stringify(backendUser));
 
       const userRole =
-        backendUser.role?.toLowerCase() || (backendUser.role_id === 1 ? "admin" : "user");
+        backendUser.role?.toLowerCase() ||
+        (backendUser.role_id === 1 ? "admin" : "user");
       localStorage.setItem("role", userRole);
 
       if (userRole === "admin") {
         navigate("/adminDashboard", { replace: true });
       } else {
         navigate("/welcome", {
-          state: {
-            email: backendUser.email,
-            username: backendUser.username || "User",
-          },
+          state: { email: backendUser.email, username: backendUser.username || "User" },
           replace: true,
         });
       }
     } catch (err: any) {
-      console.error("❌ [DEBUG] Error Google Login:", err);
+      console.error("❌ [DEBUG] Error Google Login:", err.response?.data || err);
       setMessage("Login dengan Google gagal. Silakan coba lagi.");
     }
   };
@@ -194,10 +178,8 @@ const Login = () => {
           </button>
         </form>
 
-        {/* PESAN ERROR */}
         {message && <p className="error-message">{message}</p>}
 
-        {/* PEMBATAS */}
         <div className="form-separator">atau</div>
 
         {/* BUTTON GOOGLE */}
@@ -206,7 +188,6 @@ const Login = () => {
           Login dengan Google
         </button>
 
-        {/* LINK SIGNUP */}
         <div className="form-footer">
           Belum punya akun?{" "}
           <Link to="/signup" className="link-blue">
