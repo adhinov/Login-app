@@ -9,9 +9,8 @@ import { OAuth2Client } from "google-auth-library";
 
 dotenv.config();
 const resend = new Resend(process.env.RESEND_API_KEY);
-// Setup Google OAuth client
+
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // ====================== REGISTER ======================
 export const register = async (req, res) => {
