@@ -129,43 +129,66 @@ export const getLastLogin = async (req, res) => {
 // ==================== GOOGLE LOGIN ====================
 export const googleLogin = async (req, res) => {
   try {
-    const { email, username } = req.body;
-    if (!email) {
-      return res.status(400).json({ message: "Email diperlukan." });
+    console.log("🔹 [DEBUG] Google login request:", req.body);
+
+    const { token } = req.body;
+    if (!token) {
+      return res.status(400).json({ message: "Token tidak ditemukan." });
     }
 
-    // Cek user sudah ada atau belum
-    const [rows] = await db.query("SELECT * FROM users WHERE email = ?", [
+    // Verifikasi token Google
+    const ticket = await googleClient.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    console.log("✅ [DEBUG] Google payload:", payload);
+
+    const email = payload.email;
+    const username = payload.name || email.split("@")[0];
+
+    // Cek user di DB (pakai Postgres)
+    const result = await pool.query("SELECT * FROM users WHERE email = $1", [
       email,
     ]);
 
     let user;
-    if (rows.length === 0) {
-      // Jika user belum ada → buat akun baru tanpa password
-      await db.query(
-        "INSERT INTO users (email, username, role) VALUES (?, ?, ?)",
-        [email, username || email.split("@")[0], "user"]
+    if (result.rows.length === 0) {
+      // insert user baru
+      const defaultRoleId = 2; // default user
+      const insert = await pool.query(
+        "INSERT INTO users (username, email, role_id) VALUES ($1, $2, $3) RETURNING *",
+        [username, email, defaultRoleId]
       );
-      const [newUser] = await db.query("SELECT * FROM users WHERE email = ?", [
-        email,
-      ]);
-      user = newUser[0];
+      user = insert.rows[0];
+      console.log("✅ [DEBUG] User baru dibuat:", user.email);
     } else {
-      user = rows[0];
+      user = result.rows[0];
+      console.log("✅ [DEBUG] User ditemukan:", user.email);
     }
 
-    // Buat JWT khusus untuk alur set password
-    const token = jwt.sign(
-      { email: user.email }, // hanya email, tanpa password
+    // Buat JWT
+    const tokenJwt = jwt.sign(
+      { id: user.id, email: user.email, role: user.role_id === 1 ? "admin" : "user" },
       process.env.JWT_SECRET,
-      { expiresIn: "15m" } // token singkat, misal 15 menit
+      { expiresIn: "1h" }
     );
 
-    res.json({ token });
+    res.json({
+      message: "Google login success",
+      token: tokenJwt,
+      user: {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        role: user.role_id === 1 ? "admin" : "user",
+        role_id: user.role_id,
+      },
+    });
   } catch (err) {
-    res
-      .status(500)
-      .json({ message: "Gagal login Google.", error: err.message });
+    console.error("❌ [DEBUG] Google login error:", err.message);
+    res.status(400).json({ message: "Google login gagal", error: err.message });
   }
 };
 
