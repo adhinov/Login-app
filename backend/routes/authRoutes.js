@@ -10,8 +10,7 @@ import {
 } from "../controllers/authController.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 import { isAdmin } from "../middleware/isAdmin.js";
-import db from "../config/db.js";
-import { googleLogin } from "../controllers/authController.js";
+import pool from "../config/db.js"; // pakai pool dari Postgres
 
 const router = express.Router();
 
@@ -41,14 +40,12 @@ router.get("/last-login", verifyToken, async (req, res) => {
   try {
     const userId = req.user.id;
 
-    // NOTE: sesuaikan placeholder dengan driver DB yang dipakai
-    // Jika pakai MySQL → gunakan ? bukan $1
-    const [rows] = await db.query(
-      "SELECT last_login FROM users WHERE id = ?",
+    const result = await pool.query(
+      "SELECT last_login FROM users WHERE id = $1",
       [userId]
     );
 
-    if (rows.length === 0) {
+    if (result.rows.length === 0) {
       return res
         .status(404)
         .json({ success: false, message: "User tidak ditemukan" });
@@ -56,7 +53,7 @@ router.get("/last-login", verifyToken, async (req, res) => {
 
     res.json({
       success: true,
-      lastLogin: rows[0].last_login,
+      lastLogin: result.rows[0].last_login,
     });
   } catch (err) {
     console.error("❌ Error ambil last login:", err.message);
