@@ -76,7 +76,7 @@ const Signup = () => {
   return (
     <div className="form-container">
       <div className="form-box">
-        <h2 className="form-title green">Daftar</h2>
+        <h2 className="form-title green">SignUp</h2>
 
         <div className="form-group">
           <label>Email</label>
@@ -146,8 +146,8 @@ const Signup = () => {
           <p className="password-hint">Panjang password minimal 6 karakter</p>
         </div>
 
-        <button className="form-button black" onClick={handleSignup}>
-          Daftar
+        <button className="form-button" onClick={handleSignup}>
+          Sign Up
         </button>
 
         {message && <p className="error-message">{message}</p>}

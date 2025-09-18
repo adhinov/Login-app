@@ -190,7 +190,7 @@ const Login = () => {
 
           {/* BUTTON LOGIN */}
           <button className="form-button black" type="submit" disabled={loading}>
-            {loading ? "Memproses..." : "Masuk"}
+            {loading ? "Memproses..." : "Log In"}
           </button>
         </form>
 
