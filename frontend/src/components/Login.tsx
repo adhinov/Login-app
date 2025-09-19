@@ -81,11 +81,13 @@ const Login = () => {
     try {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
-      const user = result.user;
+      const firebaseUser = result.user;
 
-      const idToken = await user.getIdToken();
+      // Ambil ID Token dari Firebase
+      const idToken = await firebaseUser.getIdToken();
       console.log("🔹 [DEBUG] Google ID Token:", idToken.substring(0, 30) + "...");
 
+      // Kirim ke backend untuk verifikasi
       const res: AxiosResponse<{
         token: string;
         user: { role?: string; role_id?: number; email: string; username?: string };
@@ -95,21 +97,35 @@ const Login = () => {
 
       const { token, user: backendUser } = res.data;
 
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(backendUser));
+      if (token && backendUser) {
+        localStorage.setItem("token", token);
+        localStorage.setItem("user", JSON.stringify(backendUser));
 
-      const userRole =
-        backendUser.role?.toLowerCase() ||
-        (backendUser.role_id === 1 ? "admin" : "user");
-      localStorage.setItem("role", userRole);
+        const userRole =
+          backendUser.role?.toLowerCase() ||
+          (backendUser.role_id === 1 ? "admin" : "user");
+        localStorage.setItem("role", userRole);
 
-      if (userRole === "admin") {
-        navigate("/adminDashboard", { replace: true });
+        // ✅ Simpan last login juga
+        const oldLastLogin = localStorage.getItem("lastLogin");
+        if (oldLastLogin) {
+          localStorage.setItem("previousLogin", oldLastLogin);
+        }
+        localStorage.setItem("lastLogin", new Date().toISOString());
+
+        if (userRole === "admin") {
+          navigate("/adminDashboard", { replace: true });
+        } else {
+          navigate("/welcome", {
+            state: {
+              email: backendUser.email,
+              username: backendUser.username || "User",
+            },
+            replace: true,
+          });
+        }
       } else {
-        navigate("/welcome", {
-          state: { email: backendUser.email, username: backendUser.username || "User" },
-          replace: true,
-        });
+        setMessage("Login Google gagal. Data tidak valid dari server.");
       }
     } catch (err: any) {
       console.error("❌ [DEBUG] Error Google Login:", err.response?.data || err);
