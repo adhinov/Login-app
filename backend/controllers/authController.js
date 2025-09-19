@@ -4,13 +4,10 @@ import jwt from "jsonwebtoken";
 import pool from "../config/db.js";
 import dotenv from "dotenv";
 import { Resend } from "resend";
-import admin from "../config/firebaseAdmin.js";
-import { OAuth2Client } from "google-auth-library";
+import admin from "../config/firebaseAdmin.js"; // pakai firebase-admin
 
 dotenv.config();
 const resend = new Resend(process.env.RESEND_API_KEY);
-
-const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // ====================== REGISTER ======================
 export const register = async (req, res) => {
@@ -45,12 +42,11 @@ export const register = async (req, res) => {
   }
 };
 
-// ====================== LOGIN ======================
+// ====================== LOGIN (email/password) ======================
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Cari user + join role
     const result = await pool.query(
       `SELECT u.*, r.name as role_name 
        FROM users u 
@@ -67,7 +63,6 @@ export const login = async (req, res) => {
 
     const user = result.rows[0];
 
-    // Cek password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res
@@ -75,16 +70,12 @@ export const login = async (req, res) => {
         .json({ success: false, message: "Password salah" });
     }
 
-    // Simpan last login lama sebelum update
     const previousLogin = user.last_login;
 
-    // Update last login ke waktu sekarang (UTC+7 misal)
-    await pool.query(
-      "UPDATE users SET last_login = NOW() WHERE id = $1",
-      [user.id]
-    );
+    await pool.query("UPDATE users SET last_login = NOW() WHERE id = $1", [
+      user.id,
+    ]);
 
-    // Buat token
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role_name },
       process.env.JWT_SECRET,
@@ -100,7 +91,7 @@ export const login = async (req, res) => {
         username: user.username,
         role: user.role_name,
       },
-      previousLogin, // <-- yang ditampilkan di AdminDashboard
+      previousLogin,
     });
   } catch (err) {
     console.error("❌ Error login:", err.message);
@@ -108,10 +99,10 @@ export const login = async (req, res) => {
   }
 };
 
-// ====================== LAST LOGIN ENDPOINT ======================
+// ====================== LAST LOGIN ======================
 export const getLastLogin = async (req, res) => {
   try {
-    const userId = req.user.id; // dari verifyToken middleware
+    const userId = req.user.id;
 
     const result = await pool.query(
       "SELECT last_login FROM users WHERE id = $1",
@@ -129,7 +120,7 @@ export const getLastLogin = async (req, res) => {
   }
 };
 
-// ==================== LOGIN GOOGLE ====================
+// ==================== LOGIN GOOGLE (pakai firebase-admin) ====================
 export const googleLogin = async (req, res) => {
   try {
     console.log("🔹 [DEBUG] Google login request:", req.body);
@@ -139,33 +130,31 @@ export const googleLogin = async (req, res) => {
       return res.status(400).json({ error: "Google token is required" });
     }
 
-    // Verifikasi token Google
-    const ticket = await googleClient.verifyIdToken({
-      idToken: token,
-      audience: process.env.GOOGLE_CLIENT_ID, // HARUS cocok dengan Client ID di Firebase
-    });
+    // ✅ Verifikasi ID token dengan Firebase Admin
+    const decodedToken = await admin.auth().verifyIdToken(token);
+    console.log("✅ [DEBUG] Google token verified:", decodedToken);
 
-    const payload = ticket.getPayload();
-    if (!payload) {
-      return res.status(400).json({ error: "Invalid Google token" });
+    const { email, name } = decodedToken;
+
+    if (!email) {
+      return res.status(400).json({ error: "Email not found in token" });
     }
 
-    const { email, name } = payload;
-
     // Cek user di DB
-    const result = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
+    const result = await pool.query("SELECT * FROM users WHERE email = $1", [
+      email,
+    ]);
     let user = result.rows[0];
 
     if (!user) {
       const insert = await pool.query(
         "INSERT INTO users (username, email, role_id) VALUES ($1, $2, $3) RETURNING *",
-        [name, email, 2] // default role = user
+        [name || "User", email, 2] // default role = user
       );
       user = insert.rows[0];
       console.log("✅ [DEBUG] New user created via Google:", user);
     }
 
-    // Generate JWT app kita
     const appToken = jwt.sign(
       { id: user.id, email: user.email, role: user.role_id },
       process.env.JWT_SECRET,
@@ -187,7 +176,7 @@ export const googleLogin = async (req, res) => {
 export const setPassword = async (req, res) => {
   try {
     const { password } = req.body;
-    const email = req.user.email; // dari verifyToken
+    const email = req.user.email;
 
     if (!password || password.length < 6) {
       return res
@@ -196,7 +185,7 @@ export const setPassword = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    await db.query("UPDATE users SET password = ? WHERE email = ?", [
+    await pool.query("UPDATE users SET password = $1 WHERE email = $2", [
       hashedPassword,
       email,
     ]);
@@ -216,7 +205,6 @@ export const forgotPassword = async (req, res) => {
 
     const { email } = req.body;
 
-    // Cek apakah email ada di DB
     const { rows } = await pool.query("SELECT * FROM users WHERE email = $1", [
       email,
     ]);
@@ -232,15 +220,12 @@ export const forgotPassword = async (req, res) => {
         .json({ message: "Konfigurasi server tidak lengkap" });
     }
 
-    // Buat token reset password
     const token = jwt.sign({ email }, process.env.JWT_RESET_SECRET, {
       expiresIn: "1h",
     });
 
-    // Gunakan FRONTEND_URL sebagai base link
     const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
 
-    // Kirim email via Resend
     await resend.emails.send({
       from: process.env.EMAIL_FROM || "onboarding@resend.dev",
       to: email,
@@ -267,13 +252,10 @@ export const resetPassword = async (req, res) => {
   try {
     console.log("📩 [RESET PASSWORD] Request:", req.body);
 
-    // Verifikasi token pakai JWT_RESET_SECRET
     const decoded = jwt.verify(token, process.env.JWT_RESET_SECRET);
 
-    // Hash password baru
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Update password di DB
     await pool.query("UPDATE users SET password = $1 WHERE email = $2", [
       hashedPassword,
       decoded.email,
