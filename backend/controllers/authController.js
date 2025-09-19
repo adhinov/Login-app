@@ -120,7 +120,7 @@ export const getLastLogin = async (req, res) => {
   }
 };
 
-// ==================== LOGIN GOOGLE (pakai firebase-admin) ====================
+// ==================== LOGIN GOOGLE ====================
 export const googleLogin = async (req, res) => {
   try {
     console.log("🔹 [DEBUG] Google login request:", req.body);
@@ -130,31 +130,31 @@ export const googleLogin = async (req, res) => {
       return res.status(400).json({ error: "Google token is required" });
     }
 
-    // ✅ Verifikasi ID token dengan Firebase Admin
-    const decodedToken = await admin.auth().verifyIdToken(token);
-    console.log("✅ [DEBUG] Google token verified:", decodedToken);
+    // Verifikasi token Google via Firebase Admin
+    const decoded = await admin.auth().verifyIdToken(token);
+    console.log("✅ [DEBUG] Google token verified:", decoded);
 
-    const { email, name } = decodedToken;
+    const { email, name } = decoded;
 
     if (!email) {
-      return res.status(400).json({ error: "Email not found in token" });
+      return res.status(400).json({ error: "Email tidak ditemukan di token" });
     }
 
     // Cek user di DB
-    const result = await pool.query("SELECT * FROM users WHERE email = $1", [
-      email,
-    ]);
+    const result = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
     let user = result.rows[0];
 
+    // Jika belum ada, buat user baru (password biarkan NULL)
     if (!user) {
       const insert = await pool.query(
         "INSERT INTO users (username, email, role_id) VALUES ($1, $2, $3) RETURNING *",
-        [name || "User", email, 2] // default role = user
+        [name || email.split("@")[0], email, 2] // role 2 = user
       );
       user = insert.rows[0];
       console.log("✅ [DEBUG] New user created via Google:", user);
     }
 
+    // Generate JWT app kita
     const appToken = jwt.sign(
       { id: user.id, email: user.email, role: user.role_id },
       process.env.JWT_SECRET,
@@ -162,9 +162,15 @@ export const googleLogin = async (req, res) => {
     );
 
     return res.json({
+      success: true,
       message: "Google login successful",
       token: appToken,
-      user,
+      user: {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        role: user.role_id,
+      },
     });
   } catch (error) {
     console.error("❌ [DEBUG] Google login error:", error.message);
