@@ -1,24 +1,29 @@
+// src/pages/SetPassword.tsx
 import { useEffect, useState } from "react";
 import axios, { AxiosError } from "axios";
 import { useNavigate } from "react-router-dom";
-import { jwtDecode } from "jwt-decode";
-import "./global.css";
 import { FaEnvelope, FaLock } from "react-icons/fa";
+import "./global.css";
 
-const BASE_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL;
 
 const SetPassword = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Ambil email dari token JWT
+  // Ambil email dari localStorage (user hasil login Google)
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      const decoded = jwtDecode<{ email: string }>(token);
-      setEmail(decoded.email);
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        setEmail(parsedUser.email || "");
+      } catch (err) {
+        console.error("❌ [DEBUG] Gagal parse user dari localStorage:", err);
+      }
     }
   }, []);
 
@@ -36,10 +41,11 @@ const SetPassword = () => {
     }
 
     try {
+      setLoading(true);
       const token = localStorage.getItem("token");
 
       await axios.post(
-        `${BASE_URL}/api/auth/set-password`,
+        `${API_URL}/api/auth/set-password`,
         { email, password },
         {
           headers: {
@@ -48,12 +54,18 @@ const SetPassword = () => {
         }
       );
 
-      alert("Password berhasil disetel. Silakan login.");
+      alert("✅ Password berhasil disetel. Silakan login kembali.");
+      // Bersihkan token lama supaya user harus login ulang
       localStorage.removeItem("token");
-      navigate("/login");
+      localStorage.removeItem("user");
+      localStorage.removeItem("role");
+      navigate("/login", { replace: true });
     } catch (err) {
       const error = err as AxiosError<{ message: string }>;
+      console.error("❌ [DEBUG] Error SetPassword:", error.response?.data || err);
       setMessage(error.response?.data?.message || "Gagal menyimpan password.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -89,8 +101,12 @@ const SetPassword = () => {
           </div>
         </div>
 
-        <button className="form-button green" onClick={handleSetPassword}>
-          Simpan Password
+        <button
+          className="form-button green"
+          onClick={handleSetPassword}
+          disabled={loading}
+        >
+          {loading ? "Menyimpan..." : "Simpan Password"}
         </button>
 
         {message && <p className="error-message">{message}</p>}

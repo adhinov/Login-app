@@ -40,7 +40,6 @@ const Login = () => {
         localStorage.setItem("token", token);
         localStorage.setItem("user", JSON.stringify(user));
 
-        // ✅ Normalisasi role
         const userRole =
           user.role?.toLowerCase() || (user.role_id === 1 ? "admin" : "user");
         localStorage.setItem("role", userRole);
@@ -90,7 +89,13 @@ const Login = () => {
       // Kirim ke backend untuk verifikasi
       const res: AxiosResponse<{
         token: string;
-        user: { role?: string; role_id?: number; email: string; username?: string };
+        user: {
+          role?: string;
+          role_id?: number;
+          email: string;
+          username?: string;
+          password?: string | null;
+        };
       }> = await axios.post(`${API_URL}/api/auth/google-login`, {
         token: idToken,
       });
@@ -112,6 +117,13 @@ const Login = () => {
           localStorage.setItem("previousLogin", oldLastLogin);
         }
         localStorage.setItem("lastLogin", new Date().toISOString());
+
+        // 🚀 Jika user baru & password masih null → arahkan ke SetPassword
+        if (!backendUser.password) {
+          console.log("🔹 [DEBUG] Redirect ke SetPassword");
+          navigate("/set-password", { replace: true });
+          return;
+        }
 
         if (userRole === "admin") {
           navigate("/adminDashboard", { replace: true });
