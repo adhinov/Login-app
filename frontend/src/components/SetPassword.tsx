@@ -14,16 +14,23 @@ const SetPassword = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Ambil email dari localStorage (user hasil login Google)
+  // Ambil email dari localStorage (disimpan setelah Google login)
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser);
-        setEmail(parsedUser.email || "");
+        if (parsedUser.email) {
+          setEmail(parsedUser.email);
+        } else {
+          setMessage("Token login tidak valid, silakan login ulang.");
+        }
       } catch (err) {
         console.error("❌ [DEBUG] Gagal parse user dari localStorage:", err);
+        setMessage("Terjadi kesalahan, silakan login ulang.");
       }
+    } else {
+      setMessage("Anda harus login dengan Google terlebih dahulu.");
     }
   }, []);
 
@@ -55,7 +62,7 @@ const SetPassword = () => {
       );
 
       alert("✅ Password berhasil disetel. Silakan login kembali.");
-      // Bersihkan token lama supaya user harus login ulang
+      // Bersihkan token & user agar harus login ulang
       localStorage.removeItem("token");
       localStorage.removeItem("user");
       localStorage.removeItem("role");
