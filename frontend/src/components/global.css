@@ -80,62 +80,6 @@ html, body, #root {
   box-sizing: border-box;
 }
 
-/* Floating Input */
-.floating-input {
-  position: relative;
-  margin-bottom: 20px;
-}
-
-.floating-input input {
-  width: 100%;
-  border: none;
-  border-bottom: 2px solid #aaa;
-  background: transparent;
-  padding: 10px 35px;   /* ruang kiri & kanan untuk ikon */
-  font-size: 16px;
-  color: #fff;
-  outline: none;
-  box-sizing: border-box;
-}
-
-.floating-input label {
-  position: absolute;
-  left: 35px;           /* label sejajar setelah ikon */
-  top: 10px;
-  color: #aaa;
-  font-size: 16px;
-  pointer-events: none;
-  transition: 0.2s ease all;
-}
-
-.floating-input input:focus ~ label,
-.floating-input input:valid ~ label {
-  top: -10px;
-  font-size: 12px;
-  color: #00ff00;
-}
-
-.floating-input input:focus {
-  border-bottom: 2px solid #00ff00;
-}
-
-/* Ikon di input */
-.input-icon {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #7b7b7b;
-  font-size: 16px;
-}
-
-.input-icon.left {
-  left: 10px;
-}
-
-.input-icon.right {
-  right: 10px;
-}
-
 .input-icon { color: #7b7b7b; font-size: 0.9rem; }
 .toggle-password { position: absolute; right: 10px; color: #ccc; cursor: pointer; }
 

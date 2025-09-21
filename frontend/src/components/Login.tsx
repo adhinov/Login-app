@@ -1,3 +1,4 @@
+// src/components/Login.tsx
 import { useState } from "react";
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
@@ -22,11 +23,16 @@ const Login = () => {
     setLoading(true);
     setMessage("");
 
+    console.log("🔹 [DEBUG] API_URL =", API_URL);
+    console.log("🔹 [DEBUG] Login attempt:", { email, password });
+
     try {
       const res: AxiosResponse<{
         token: string;
         user: { role?: string; role_id?: number; email: string; username?: string };
       }> = await axios.post(`${API_URL}/api/auth/login`, { email, password });
+
+      console.log("✅ [DEBUG] Response data:", res.data);
 
       const { token, user } = res.data;
 
@@ -58,8 +64,10 @@ const Login = () => {
       }
     } catch (err: any) {
       if (axios.isAxiosError(err)) {
+        console.error("❌ [DEBUG] Axios error:", err.response?.data);
         setMessage(err.response?.data?.message || "Email atau password salah.");
       } else {
+        console.error("❌ [DEBUG] Unexpected error:", err);
         setMessage("Terjadi kesalahan tak terduga. Silakan coba lagi.");
       }
     } finally {
@@ -74,8 +82,11 @@ const Login = () => {
       const result = await signInWithPopup(auth, provider);
       const firebaseUser = result.user;
 
+      // Ambil ID Token dari Firebase
       const idToken = await firebaseUser.getIdToken();
+      console.log("🔹 [DEBUG] Google ID Token:", idToken.substring(0, 30) + "...");
 
+      // Kirim ke backend untuk verifikasi
       const res: AxiosResponse<{
         token: string;
         user: {
@@ -107,7 +118,9 @@ const Login = () => {
         }
         localStorage.setItem("lastLogin", new Date().toISOString());
 
+        // 🚀 Jika user baru & password masih null → arahkan ke SetPassword
         if (!backendUser.password) {
+          console.log("🔹 [DEBUG] Redirect ke SetPassword");
           navigate("/set-password", { replace: true });
           return;
         }
@@ -127,6 +140,7 @@ const Login = () => {
         setMessage("Login Google gagal. Data tidak valid dari server.");
       }
     } catch (err: any) {
+      console.error("❌ [DEBUG] Error Google Login:", err.response?.data || err);
       setMessage("Login dengan Google gagal. Silakan coba lagi.");
     }
   };
@@ -144,43 +158,49 @@ const Login = () => {
           }}
         >
           {/* EMAIL */}
-          <div className="form-group floating-input">
-            <FaEnvelope className="input-icon left" />
-            <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-            <label htmlFor="email">Email</label>
+          <div className="form-group">
+            <label>Email</label>
+            <div className="input-wrapper">
+              <FaEnvelope className="input-icon" />
+              <input
+                type="email"
+                placeholder="Masukan Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
           </div>
 
           {/* PASSWORD */}
-          <div className="form-group floating-input">
-            <FaLock className="input-icon left" />
-            <input
-              type={showPassword ? "text" : "password"}
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-            <label htmlFor="password">Password</label>
-            <span
-              className="input-icon right cursor-pointer"
-              onClick={() => setShowPassword(!showPassword)}
-            >
-              {showPassword ? <FaEyeSlash /> : <FaEye />}
-            </span>
+          <div className="form-group">
+            <label>Password</label>
+            <div className="input-wrapper">
+              <FaLock className="input-icon" />
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="Masukan Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <span
+                className="toggle-password"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </span>
+            </div>
           </div>
 
+          {/* LUPA PASSWORD */}
           <div className="form-footer right">
             <Link to="/forgot-password" className="link-blue">
               Lupa Password?
             </Link>
           </div>
 
+          {/* BUTTON LOGIN */}
           <button className="form-button black" type="submit" disabled={loading}>
             {loading ? "Memproses..." : "Log In"}
           </button>
@@ -190,7 +210,7 @@ const Login = () => {
 
         <div className="form-separator">atau</div>
 
-        {/* GOOGLE LOGIN */}
+        {/* BUTTON GOOGLE */}
         <button type="button" className="google-button" onClick={handleGoogleLogin}>
           <FcGoogle className="google-icon" />
           Login dengan Google
