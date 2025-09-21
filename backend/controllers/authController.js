@@ -161,6 +161,9 @@ export const googleLogin = async (req, res) => {
       { expiresIn: "1h" }
     );
 
+    // Tambahkan flag needsPassword
+    const needsPassword = user.password === null;
+
     return res.json({
       success: true,
       message: "Google login successful",
@@ -171,6 +174,7 @@ export const googleLogin = async (req, res) => {
         username: user.username,
         role: user.role_id,
       },
+      needsPassword, // <---- flag tambahan
     });
   } catch (error) {
     console.error("❌ [DEBUG] Google login error:", error.message);
